@@ -1,18 +1,18 @@
 ### Github action runner on OpenShift
 FROM fedora:32
 
-ARG GH_RUNNER_VERSION
-
 ENV RUNNER_NAME=""
 ENV RUNNER_WORK_DIRECTORY="_work"
 ENV RUNNER_TOKEN=""
 ENV RUNNER_ORGANIZATION_URL=""
 ENV RUNNER_LABELS=""
 ENV RUNNER_ALLOW_RUNASROOT=true
-ENV GITHUB_ACCESS_TOKEN=""
+ENV GIT_SSL_NO_VERIFY="true"
 
 ENV RUNNER_ROOT=/home/runner
 ENV PATH=${RUNNER_ROOT}/bin:${PATH} HOME=${RUNNER_ROOT}
+
+ARG GITHUB_ACCESS_TOKEN
 
 LABEL name="kite-action-runner" \
       maintainer="xiaofwan@redhat.com" \
@@ -26,11 +26,6 @@ LABEL name="kite-action-runner" \
       io.openshift.tags="kite,github-action,runner"
 
 USER root
-
-### Install redhat certs used to access internal https resource
-ADD https://password.corp.redhat.com/RH-IT-Root-CA.crt \
-    /etc/pki/ca-trust/source/anchors/
-RUN update-ca-trust extract
 
 RUN dnf -y update && \
     dnf -y install \
@@ -51,10 +46,7 @@ RUN dnf -y update && \
         zip && \
     dnf clean all && \
     pip install pyvmomi boto boto3 openstacksdk && \
-    mkdir -p ${RUNNER_ROOT} && \
-    chmod -R g=u ${RUNNER_ROOT} /etc/passwd /etc/group && \
-    chgrp -R 0 ${RUNNER_ROOT} && \
-    echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    mkdir -p ${RUNNER_ROOT}
 
 ### The GitHub runner will update itself when receiving a job, if a new release is available.
 ### In order to allow the runner to exit and restart by itself, the binary is started by a supervisord process.
@@ -63,12 +55,16 @@ RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR ${RUNNER_ROOT}
 
-RUN GH_RUNNER_VERSION=${GH_RUNNER_VERSION:-$(curl --silent "https://api.github.com/repos/actions/runner/releases/latest" | jq -r ".tag_name" | sed 's/^v//')} && \
-    curl -L -O https://github.com/actions/runner/releases/download/v${GH_RUNNER_VERSION}/actions-runner-linux-x64-${GH_RUNNER_VERSION}.tar.gz && \
-    tar -zxf actions-runner-linux-x64-${GH_RUNNER_VERSION}.tar.gz && \
-    rm -f actions-runner-linux-x64-${GH_RUNNER_VERSION}.tar.gz && \
+### Get action-runner download URL with actions API
+### That requires GITHUB ACCESS TOKEN argument provided when building image
+RUN DOWNLOAD_URL=$(curl -fsSL -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/virt-s1/actions/runners/downloads | jq -c -r 'map(select(.os == "linux" and .architecture == "x64") | .download_url) | .[]') && \
+    curl -L -O ${DOWNLOAD_URL} && \
+    tar -zxf actions-runner-linux-x64*.tar.gz && \
+    rm -f actions-runner-linux-x64*.tar.gz && \
     ./bin/installdependencies.sh && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* && \
+    chmod -R g=u ${RUNNER_ROOT} /etc/passwd /etc/group && \
+    chgrp -R 0 ${RUNNER_ROOT}
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod a+rx /entrypoint.sh
