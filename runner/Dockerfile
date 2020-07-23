@@ -27,13 +27,22 @@ LABEL name="kite-action-runner" \
 
 USER root
 
+### Install redhat crets used by rcm repo
+ADD https://password.corp.redhat.com/RH-IT-Root-CA.crt \
+    /etc/pki/ca-trust/source/anchors/
+RUN update-ca-trust extract
+
 RUN dnf -y update && \
     dnf -y install \
         ansible \
         curl \
+        expect \
         gcc \
+        gcc-c++ \
         git \
+        gnupg \
         jq \
+        make \
         openssl \
         python3 \
         python3-devel \
@@ -45,7 +54,7 @@ RUN dnf -y update && \
         wget \
         zip && \
     dnf clean all && \
-    pip install pyvmomi boto boto3 openstacksdk && \
+    pip install flake8 pyvmomi boto boto3 openstacksdk && \
     mkdir -p ${RUNNER_ROOT}
 
 ### The GitHub runner will update itself when receiving a job, if a new release is available.
