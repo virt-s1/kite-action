@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: github-runner-builder
+metadata:
+  annotations:
+    description: github action runner image builder
+    iconClass: icon-runner
+    tags: github,action,runner
+  name: github-runner
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        slave-label: github-runner
+      labels:
+        role: github-runner
+      name: github-runner
+    spec: {}
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      name: github-runner
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: github-runner:latest
+      resources: {}
+      source:
+        contextDir: ${CONTEXTDIR}
+        git:
+          ref: ${REPO_REF}
+          uri: ${REPO_URL}
+        type: Git
+      strategy:
+        dockerStrategy:
+          forcePull: true
+          noCache: true
+          env:
+            - name: GITHUB_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-access-token
+                  key: token
+        type: Docker
+      triggers:
+        - type: ConfigChange
+parameters:
+  - description: Git repository with Dockerfile and entrypoint.
+    displayName: Repository URL
+    name: REPO_URL
+    value: https://github.com/virt-s1/kite-action.git
+  - description: The sub-directory inside the repository.
+    displayName: Context Directory
+    name: CONTEXTDIR
+    value: runner
+  - description: The git ref or tag to use for customization.
+    displayName: Git Reference
+    name: REPO_REF
+    value: master
