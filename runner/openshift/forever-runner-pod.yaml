@@ -1,0 +1,31 @@
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: _POD_NAME_REPLACE_HERE_
+spec:
+  containers:
+    - name: forever-github-runner
+      image: docker-registry.default.svc:5000/virt-qe-3rd/github-runner:latest
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "250Mi"
+          cpu: "100m"
+        limits:
+          memory: "500Mi"
+          cpu: "500m"
+      env:
+        - name: RUNNER_ORGANIZATION_URL
+          value: https://github.com/virt-s1
+        - name: RUNNER_LABELS
+          value: DO_NOT_REMOVE
+        - name: GITHUB_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-access-token
+              key: token
+        - name: RUNNER_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
