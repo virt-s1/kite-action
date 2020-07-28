@@ -1,7 +1,7 @@
 ### Github action controller on OpenShift
 FROM fedora:32
 
-LABEL name="kite-action-controller" \
+LABEL name="kite-controller" \
       maintainer="xiaofwan@redhat.com" \
       vendor="Red Hat QE Section 1" \
       version="1.0" \
@@ -9,10 +9,15 @@ LABEL name="kite-action-controller" \
       summary="Github self-host action controller" \
       description="Github action controller for kite project on OpenShift" \
       io.k8s.description="Github action controller for kite project on OpenShift" \
-      io.k8s.display-name="kite action controller" \
-      io.openshift.tags="kite,github-action,controller"
+      io.k8s.display-name="kite controller" \
+      io.openshift.tags="kite-controller,github-action-controller"
 
 USER root
+
+# install red hat root CA to access red hat internal https service
+ADD https://password.corp.redhat.com/RH-IT-Root-CA.crt \
+    /etc/pki/ca-trust/source/anchors/
+RUN update-ca-trust extract
 
 RUN dnf -y update && \
     dnf -y install \
@@ -26,7 +31,7 @@ RUN dnf -y update && \
         python3-pip && \
     dnf clean all && \
     pip install bottle requests bjoern && \
-    curl -k -o /usr/bin/oc https://file-server-virt-qe-3rd.cloud.paas.psi.redhat.com/oc && \
+    curl -o /usr/bin/oc https://file-server-virt-qe-3rd.cloud.paas.psi.redhat.com/oc && \
     chmod 755 /usr/bin/oc
 
 COPY controller.py /
