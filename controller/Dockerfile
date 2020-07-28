@@ -32,5 +32,4 @@ RUN chmod 755 /controller.py
 
 EXPOSE 8080
 
-USER 1001
 CMD ["/controller.py"]
