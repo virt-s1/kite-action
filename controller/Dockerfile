@@ -16,6 +16,8 @@ USER root
 
 RUN dnf -y update && \
     dnf -y install \
+        net-tools \
+        procps-ng \
         curl \
         gcc \
         libev-devel \
