@@ -64,4 +64,4 @@ def oc_probe():
 # dev
 # run(reloader=True, debug=True)
 # prod
-run(server="bjoern")
+run(host="0.0.0.0", port=8080, server="bjoern")
