@@ -16,13 +16,13 @@ objects:
     metadata:
       labels:
         app: ${KITE_CONTROLLER_NAME}
-      name: ${KITE_CONTROLLER_SERVICE_NAME}
+      name: ${KITE_CONTROLLER_NAME}
   - kind: BuildConfig
     apiVersion: v1
     metadata:
       labels:
         app: ${KITE_CONTROLLER_NAME}
-      name: ${KITE_CONTROLLER_SERVICE_NAME}
+      name: ${KITE_CONTROLLER_NAME}
     spec:
       output:
         to:
@@ -30,11 +30,11 @@ objects:
           name: ${KITE_CONTROLLER_IMAGE_STREAM_TAG}
       resources: {}
       source:
+        type: Git
         contextDir: ${CONTEXTDIR}
         git:
           uri: ${REPO_URL}
           ref: ${REPO_REF}
-        type: Git
       strategy:
         type: Docker
         dockerStrategy:
@@ -47,7 +47,7 @@ objects:
   - kind: Route
     apiVersion: v1
     metadata:
-      name: ${KITE_CONTROLLER_SERVICE_NAME}
+      name: ${KITE_CONTROLLER_NAME}
       annotations:
         template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
     spec:
@@ -56,24 +56,24 @@ objects:
         insecureEdgeTerminationPolicy: Redirect
       to:
         kind: Service
-        name: ${KITE_CONTROLLER_SERVICE_NAME}
+        name: ${KITE_CONTROLLER_NAME}
   - kind: DeploymentConfig
     apiVersion: v1
     metadata:
-      name: ${KITE_CONTROLLER_SERVICE_NAME}
+      name: ${KITE_CONTROLLER_NAME}
     spec:
       replicas: 1
       selector:
-        name: ${KITE_CONTROLLER_SERVICE_NAME}
+        name: ${KITE_CONTROLLER_NAME}
       strategy:
         type: Recreate
       template:
         metadata:
           labels:
-            name: ${KITE_CONTROLLER_SERVICE_NAME}
+            name: ${KITE_CONTROLLER_NAME}
         spec:
           containers:
-            - name: ${KITE_CONTROLLER_SERVICE_NAME}
+            - name: ${KITE_CONTROLLER_NAME}
               image: ${KITE_CONTROLLER_IMAGE_STREAM_TAG}
               imagePullPolicy: IfNotPresent
               readinessProbe:
@@ -109,37 +109,39 @@ objects:
                       key: token
           dnsPolicy: ClusterFirst
           restartPolicy: Always
-          serviceAccountName: ${KITE_CONTROLLER_SERVICE_NAME}
+          serviceAccountName: ${KITE_CONTROLLER_NAME}
       triggers:
         - type: "ConfigChange"
         - type: "ImageChange"
           imageChangeParams:
             automatic: true
             containerNames:
-              - ${KITE_CONTROLLER_SERVICE_NAME}
+              - ${KITE_CONTROLLER_NAME}
             from:
               kind: "ImageStreamTag"
               name: ${KITE_CONTROLLER_IMAGE_STREAM_TAG}
   - kind: ServiceAccount
     apiVersion: v1
     metadata:
-      name: ${KITE_CONTROLLER_SERVICE_NAME}
+      name: ${KITE_CONTROLLER_NAME}
   - kind: RoleBinding
     apiVersion: v1
     metadata:
-      name: "${KITE_CONTROLLER_SERVICE_NAME}_edit"
+      name: "${KITE_CONTROLLER_NAME}_edit"
     groupNames:
     subjects:
       - kind: ServiceAccount
-        name: "${KITE_CONTROLLER_SERVICE_NAME}"
+        name: "${KITE_CONTROLLER_NAME}"
     roleRef:
       name: edit
   # TCP port mapping 8080-80
   - kind: Service
     apiVersion: v1
     metadata:
-      name: "${KITE_CONTROLLER_SERVICE_NAME}"
+      name: "${KITE_CONTROLLER_NAME}"
       annotations:
+        service.alpha.openshift.io/dependencies: '[{"name": "${KITE_CONTROLLER_NAME}",
+          "namespace": "", "kind": "Service"}]'
         service.openshift.io/infrastructure: "true"
       creationTimestamp:
     spec:
@@ -150,7 +152,7 @@ objects:
           targetPort: 8080
           nodePort: 0
       selector:
-        name: "${KITE_CONTROLLER_SERVICE_NAME}"
+        name: "${KITE_CONTROLLER_NAME}"
       type: ClusterIP
       sessionAffinity: None
 # global parameters
@@ -172,10 +174,6 @@ parameters:
     displayName: kite controller APP name
     description: The name of the kite controller application.
     value: kite-controller
-  - name: KITE_CONTROLLER_SERVICE_NAME
-    displayName: kite controller service name
-    description: The name of the OpenShift Service exposed for the kite controller container.
-    value: kite-controller-service
   - name: KITE_CONTROLLER_IMAGE_STREAM_TAG
     displayName: kite controller ImageStreamTag
     description: Name of the ImageStreamTag to be used for the kite controller image.
