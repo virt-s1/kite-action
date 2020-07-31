@@ -12,6 +12,9 @@ LABEL name="kite-controller" \
       io.k8s.display-name="kite controller" \
       io.openshift.tags="kite-controller,github-action-controller"
 
+ENV CONTROLLER_ROOT=/home/controller
+ENV KUBECONFIG=${CONTROLLER_ROOT}/.kube/config
+
 USER root
 
 # install red hat root CA to access red hat internal https service
@@ -32,11 +35,19 @@ RUN dnf -y update && \
     dnf clean all && \
     pip install bottle requests bjoern && \
     curl -o /usr/bin/oc https://file-server-virt-qe-3rd.cloud.paas.psi.redhat.com/oc && \
-    chmod 755 /usr/bin/oc
+    chmod 755 /usr/bin/oc && \
+    mkdir -p ${CONTROLLER_ROOT} && \
+    chmod -R g=u ${CONTROLLER_ROOT} /etc/passwd /etc/group && \
+    chgrp -R 0 ${CONTROLLER_ROOT}
 
-COPY controller.py /
-RUN chmod 755 /controller.py
+COPY controller.py entrypoint.sh /home/controller/
+RUN chmod 755 ${CONTROLLER_ROOT}/{controller.py,entrypoint.sh}
 
 EXPOSE 8080
 
-CMD ["/controller.py"]
+WORKDIR ${CONTROLLER_ROOT}
+
+USER 1001
+
+ENTRYPOINT ["/home/controller/entrypoint.sh"]
+CMD ["/home/controller/controller.py"]
