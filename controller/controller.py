@@ -3,6 +3,9 @@
 import os
 import time
 import subprocess
+import yaml
+import random
+import string
 
 from bottle import route, run
 import requests
@@ -53,6 +56,72 @@ def shut_runner(names):
     # subprocess.call(["oc", "login", "https://paas.psi.redhat.com:443", "--token=" + sa_token])
     # subprocess.call(["oc", "project", "virt-qe-3rd"])
     subprocess.call(["oc", "delete", "--grace-period=0", "--force", "pods/" + pod_name])
+
+
+@route("/runner/create/<label>", method="PUT")
+def create_runner(label):
+    # random string for pod name
+    letters_and_digits = string.ascii_lowercase + string.digits
+    surfix = ''.join((random.choice(letters_and_digits) for i in range(5)))
+    # pod object
+    pod_obj = {
+        'kind': 'Pod',
+        'apiVersion': 'v1',
+        'metadata': {
+            'name': label + "-runner-" + surfix
+        },
+        'spec': {
+            'containers': [
+                {
+                    'name': 'forever-github-runner',
+                    'image': 'docker-registry.default.svc:5000/virt-qe-3rd/github-runner:latest',
+                    'imagePullPolicy': 'IfNotPresent',
+                    'resources': {
+                        'requests': {
+                            'memory': '250Mi',
+                            'cpu': '100m'
+                        },
+                        'limits': {
+                            'memory': '500Mi',
+                            'cpu': '500m'
+                        }
+                    },
+                    'env': [
+                        {
+                            'name': 'RUNNER_ORGANIZATION_URL',
+                            'value': 'https://github.com/virt-s1'
+                        },
+                        {
+                            'name': 'RUNNER_LABELS',
+                            'value': label
+                        },
+                        {
+                            'name': 'GITHUB_ACCESS_TOKEN',
+                            'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': 'github-access-token',
+                                    'key': 'token'
+                                }
+                            }
+                        },
+                        {
+                            'name': 'RUNNER_POD_NAME',
+                            'valueFrom': {
+                                'fieldRef': {
+                                    'fieldPath': 'metadata.name'
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    # save pod object to yaml file
+    with open("runner-pod.yaml", "w") as f:
+        yaml.dump(pod_obj, f)
+    # create pod
+    subprocess.call(["oc", "create", "-f", "runner-pod.yaml"])
 
 
 # used by readinessProbe and livenessProbe on openshift

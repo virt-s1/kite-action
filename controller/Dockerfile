@@ -33,7 +33,7 @@ RUN dnf -y update && \
         python3-devel \
         python3-pip && \
     dnf clean all && \
-    pip install bottle requests bjoern && \
+    pip install bottle requests bjoern pyyaml && \
     curl -o /usr/bin/oc https://file-server-virt-qe-3rd.cloud.paas.psi.redhat.com/oc && \
     chmod 755 /usr/bin/oc && \
     mkdir -p ${CONTROLLER_ROOT} && \
