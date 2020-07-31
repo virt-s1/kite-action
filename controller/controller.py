@@ -13,8 +13,8 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 
-@route("/runner/<names>", method="PUT")
-def shut_runner(names):
+@route("/runner/delete/<name>", method="PUT")
+def shut_runner(name):
     token = os.environ.get("GITHUB_ACCESS_TOKEN")
     api = "https://api.github.com/orgs/virt-s1/actions/"
     headers = {
@@ -22,7 +22,9 @@ def shut_runner(names):
         "Accept": "application/vnd.github.v3+json",
         "Authorization": "token " + token
     }
-    (runner_name, pod_name) = names.split(",")
+    # runner_name: github action runner name (Github->Actions)
+    # pod_name: openshift pod name (openshift->pod->name)
+    runner_name = pod_name = name
 
     # Wordaround issue - Max retries exceeded with URL in requests
     # From: https://stackoverflow.com/questions/23013220
