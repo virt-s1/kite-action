@@ -49,14 +49,8 @@ def shut_runner(name):
         retry_times -= 1
 
     # remove action runner from org
-    requests.delete(api + "runners/" + str(runner_id), headers=headers)
+    session.delete(api + "runners/" + str(runner_id), headers=headers)
     # delete pod
-    # get token in container first
-    # with open("/var/run/secrets/kubernetes.io/serviceaccount/token", "r") as token_file:
-    #     sa_token = token_file.read()
-
-    # subprocess.call(["oc", "login", "https://paas.psi.redhat.com:443", "--token=" + sa_token])
-    # subprocess.call(["oc", "project", "virt-qe-3rd"])
     subprocess.call(["oc", "delete", "--grace-period=0", "--force", "pods/" + pod_name])
 
 
