@@ -74,12 +74,12 @@ def create_runner(label):
                     'imagePullPolicy': 'IfNotPresent',
                     'resources': {
                         'requests': {
-                            'memory': '250Mi',
-                            'cpu': '100m'
-                        },
-                        'limits': {
                             'memory': '500Mi',
                             'cpu': '500m'
+                        },
+                        'limits': {
+                            'memory': '2Gi',
+                            'cpu': '1000m'
                         }
                     },
                     'env': [
