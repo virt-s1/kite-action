@@ -2,20 +2,20 @@
 kind: DeploymentConfig
 apiVersion: v1
 metadata:
-  name: forever-github-runner
+  name: runner-do-not-remove
 spec:
   replicas: 1
   selector:
-    name: forever-github-runner
+    name: runner-do-not-remove
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        name: forever-github-runner
+        name: runner-do-not-remove
     spec:
       containers:
-        - name: forever-github-runner
+        - name: runner-do-not-remove
           image: docker-registry.default.svc:5000/virt-qe-3rd/github-runner:latest
           imagePullPolicy: IfNotPresent
           resources:
