@@ -6,6 +6,8 @@ import time
 
 import boto3
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 SQS_QUEUE = os.environ["SQS_QUEUE"]
 SQS_REGION = os.environ["SQS_REGION"]
@@ -29,8 +31,16 @@ while True:
             # Get repo name
             repo_name = payload["repository"]["name"]
 
+            # Wordaround issue - Max retries exceeded with URL in requests
+            # From: https://stackoverflow.com/questions/23013220
+            session = requests.Session()
+            retry = Retry(connect=5, backoff_factor=1)
+            adapter = HTTPAdapter(max_retries=retry)
+            session.mount("https://", adapter)
+            session.keep_alive = False
+
             # Call API to create runner pod
-            requests.put(CONTROLLER_API_NETLOC + "/runner/create/" + repo_name)
+            session.put(CONTROLLER_API_NETLOC + "/runner/create/" + repo_name)
             print(f"Github runner - {repo_name} deploy starting")
 
         # Delete the message if we made it this far.
