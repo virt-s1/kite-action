@@ -1,0 +1,137 @@
+---
+kind: Template
+apiVersion: v1
+labels:
+  app: kite-proxy
+  template: kite-proxy-template
+metadata:
+  name: kite-proxy
+  annotations:
+    openshift.io/display-name: kite proxy
+    tags: kite,proxy,kite-proxy
+
+objects:
+  - kind: ImageStream
+    apiVersion: v1
+    metadata:
+      labels:
+        app: ${KITE_PROXY_NAME}
+      name: ${KITE_PROXY_NAME}
+  - kind: BuildConfig
+    apiVersion: v1
+    metadata:
+      labels:
+        app: ${KITE_PROXY_NAME}
+      name: ${KITE_PROXY_NAME}
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${KITE_PROXY_IMAGE_STREAM_TAG}
+      resources: {}
+      source:
+        type: Git
+        contextDir: ${CONTEXTDIR}
+        git:
+          uri: ${REPO_URL}
+          ref: ${REPO_REF}
+      strategy:
+        type: Docker
+        dockerStrategy:
+          noCache: true
+          forcePull: true
+      triggers:
+        - type: ConfigChange
+      successfulBuildsHistoryLimit: 2
+      failedBuildsHistoryLimit: 2
+  - kind: DeploymentConfig
+    apiVersion: v1
+    metadata:
+      name: ${KITE_PROXY_NAME}
+    spec:
+      replicas: 1
+      selector:
+        name: ${KITE_PROXY_NAME}
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            name: ${KITE_PROXY_NAME}
+        spec:
+          containers:
+            - name: ${KITE_PROXY_NAME}
+              image: ${KITE_PROXY_IMAGE_STREAM_TAG}
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  memory: "1Gi"
+                  cpu: "1000m"
+                requests:
+                  memory: "500Mi"
+                  cpu: "512m"
+              securityContext:
+                capabilities: {}
+                privileged: false
+              terminationMessagePath: /dev/termination-log
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: kite-aws-access-key-id
+                      key: id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: kite-aws-secret-access-key
+                      key: secret
+                - name: SQS_QUEUE
+                  valueFrom:
+                    secretKeyRef:
+                      name: kite-sqs-queue-name
+                      key: queue_name
+                - name: SQS_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: kite-sqs-queue-region
+                      key: queue_region
+                - name: CONTROLLER_API_NETLOC
+                  valueFrom:
+                    secretKeyRef:
+                      name: kite-controller-api-netloc
+                      key: controller_api_netloc
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+      triggers:
+        - type: "ConfigChange"
+        - type: "ImageChange"
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - ${KITE_PROXY_NAME}
+            from:
+              kind: "ImageStreamTag"
+              name: ${KITE_PROXY_IMAGE_STREAM_TAG}
+# global parameters
+parameters:
+  - description: Git repository with Dockerfile and master entrypoint.
+    displayName: Repository URL
+    name: REPO_URL
+    value: https://github.com/virt-s1/kite-action.git
+    required: true
+  - description: The sub-directory inside the repository.
+    displayName: Context Directory
+    name: CONTEXTDIR
+    value: proxy
+  - description: The git ref or tag to use for customization.
+    displayName: Git Reference
+    name: REPO_REF
+    value: master
+  - name: KITE_PROXY_NAME
+    displayName: kite proxy APP name
+    description: The name of the kite proxy application.
+    value: kite-proxy
+  - name: KITE_PROXY_IMAGE_STREAM_TAG
+    displayName: kite proxy ImageStreamTag
+    description: Name of the ImageStreamTag to be used for the kite proxy image.
+    value: kite-proxy:latest
