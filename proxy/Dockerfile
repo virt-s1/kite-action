@@ -12,6 +12,8 @@ LABEL name="kite-proxy" \
       io.k8s.display-name="kite proxy" \
       io.openshift.tags="kite-proxy,kite,proxy"
 
+ENV PROXY_ROOT=/home/proxy
+
 USER root
 
 # install red hat root CA to access red hat internal https service
@@ -29,8 +31,17 @@ RUN dnf -y update && \
         python3-devel \
         python3-pip && \
     dnf clean all && \
-    pip install boto3 requests
+    pip install boto3 requests && \
+    mkdir -p ${PROXY_ROOT} && \
+    chmod -R g=u ${PROXY_ROOT} /etc/passwd /etc/group && \
+    chgrp -R 0 ${PROXY_ROOT}
 
-COPY proxy.py /
+COPY proxy.py entrypoint.sh /home/proxy/
+RUN chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh}
 
-CMD ["python3", "-u","/proxy.py"]
+WORKDIR ${PROXY_ROOT}
+
+USER 1001
+
+ENTRYPOINT ["/home/proxy/entrypoint.sh"]
+CMD ["python3", "-u","/home/proxy/proxy.py"]
