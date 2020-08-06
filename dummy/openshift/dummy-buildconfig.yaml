@@ -1,0 +1,56 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: kite-dummy
+metadata:
+  name: kite-dummy
+
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: ${KITE_DUMMY_NAME}
+      name: ${KITE_DUMMY_NAME}
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      name: ${KITE_DUMMY_NAME}
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${KITE_DUMMY_NAME}:latest
+      resources: {}
+      source:
+        contextDir: ${CONTEXTDIR}
+        git:
+          ref: ${REPO_REF}
+          uri: ${REPO_URL}
+        type: Git
+      strategy:
+        dockerStrategy:
+          forcePull: true
+          noCache: true
+        type: Docker
+      triggers:
+        - type: ConfigChange
+      successfulBuildsHistoryLimit: 2
+      failedBuildsHistoryLimit: 2
+
+parameters:
+  - description: Git repository with Dockerfile and entrypoint.
+    displayName: Repository URL
+    name: REPO_URL
+    value: https://github.com/virt-s1/kite-action.git
+  - description: The sub-directory inside the repository.
+    displayName: Context Directory
+    name: CONTEXTDIR
+    value: dummy
+  - description: The git ref or tag to use for customization.
+    displayName: Git Reference
+    name: REPO_REF
+    value: master
+  - name: KITE_DUMMY_NAME
+    value: kite-dummy
