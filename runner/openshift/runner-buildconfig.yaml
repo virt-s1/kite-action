@@ -4,24 +4,22 @@ kind: Template
 labels:
   template: github-runner-builder
 metadata:
-  annotations:
-    description: github action runner image builder
-    iconClass: icon-runner
-    tags: github,action,runner
   name: github-runner
+  annotations:
+    tags: github,action,runner
+
 objects:
   - apiVersion: v1
     kind: ImageStream
     metadata:
-      annotations:
-        slave-label: github-runner
       labels:
-        role: github-runner
+        app: github-runner
       name: github-runner
-    spec: {}
   - apiVersion: v1
     kind: BuildConfig
     metadata:
+      labels:
+        app: github-runner
       name: github-runner
     spec:
       output:
@@ -36,6 +34,7 @@ objects:
           uri: ${REPO_URL}
         type: Git
       strategy:
+        type: Docker
         dockerStrategy:
           forcePull: true
           noCache: true
@@ -45,9 +44,11 @@ objects:
                 secretKeyRef:
                   name: github-access-token
                   key: token
-        type: Docker
       triggers:
         - type: ConfigChange
+      successfulBuildsHistoryLimit: 2
+      failedBuildsHistoryLimit: 2
+
 parameters:
   - description: Git repository with Dockerfile and entrypoint.
     displayName: Repository URL
