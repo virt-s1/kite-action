@@ -54,8 +54,8 @@ def shut_runner(name):
     subprocess.call(["oc", "delete", "--grace-period=0", "--force", "pods/" + pod_name])
 
 
-@route("/runner/create/<label>", method="PUT")
-def create_runner(label):
+@route("/runner/create/<repo>", method="PUT")
+def create_runner(repo):
     # random string for pod name
     letters_and_digits = string.ascii_lowercase + string.digits
     surfix = ''.join((random.choice(letters_and_digits) for i in range(5)))
@@ -64,7 +64,7 @@ def create_runner(label):
         'kind': 'Pod',
         'apiVersion': 'v1',
         'metadata': {
-            'name': label + "-runner-" + surfix
+            'name': repo + "-runner-" + surfix
         },
         'spec': {
             'containers': [
@@ -89,7 +89,7 @@ def create_runner(label):
                         },
                         {
                             'name': 'RUNNER_LABELS',
-                            'value': label
+                            'value': 'kite-runner'
                         },
                         {
                             'name': 'GITHUB_ACCESS_TOKEN',
