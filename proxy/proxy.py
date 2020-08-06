@@ -38,6 +38,8 @@ while True:
             adapter = HTTPAdapter(max_retries=retry)
             session.mount("https://", adapter)
             session.keep_alive = False
+            # Do not need verify certificate because it's internal
+            session.verify = False
 
             # Call API to create runner pod
             session.put(CONTROLLER_API_NETLOC + "/runner/create/" + repo_name)
