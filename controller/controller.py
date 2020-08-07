@@ -84,6 +84,10 @@ def create_runner(repo):
                     },
                     'env': [
                         {
+                            'name': 'KITE_CONTROLLER_API_NETLOC',
+                            'value': 'https://kite-controller-virt-qe-3rd.cloud.paas.psi.redhat.com'
+                        },
+                        {
                             'name': 'RUNNER_ORGANIZATION_URL',
                             'value': 'https://github.com/virt-s1'
                         },
