@@ -24,6 +24,12 @@ max-complexity = 10
 # E/W  - PEP8 errors/warnings (pycodestyle)
 # F    - linting errors (pyflakes)
 # C    - McCabe complexity error (mccabe)
+#
+# C901 - Function is too complex
+
+# Specify a list of codes to ignore.
+ignore =
+    C901
 
 # Specify the list of error codes you wish Flake8 to report.
 select =
