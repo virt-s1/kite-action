@@ -85,7 +85,12 @@ def create_runner(repo):
                     'env': [
                         {
                             'name': 'KITE_CONTROLLER_API_NETLOC',
-                            'value': 'https://kite-controller-virt-qe-3rd.cloud.paas.psi.redhat.com'
+                            'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': 'kite-controller-api-netloc',
+                                    'key': 'controller_api_netloc'
+                                }
+                            }
                         },
                         {
                             'name': 'RUNNER_ORGANIZATION_URL',
@@ -101,6 +106,75 @@ def create_runner(repo):
                                 'secretKeyRef': {
                                     'name': 'github-access-token',
                                     'key': 'token'
+                                }
+                            }
+                        },
+                        {
+                            'name': 'AWS_REGION',
+                            'value': 'us-east-1'
+                        },
+                        {
+                            'name': 'AWS_ACCESS_KEY',
+                            'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': 'aws-access-key-id',
+                                    'key': 'secrettext'
+                                }
+                            }
+                        },
+                        {
+                            'name': 'AWS_SECRET_KEY',
+                            'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': 'aws-secret-access-key',
+                                    'key': 'secrettext'
+                                }
+                            }
+                        },
+                        {
+                            'name': 'VSPHERE_USERNAME',
+                            'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': 'vsphere-service-account-username',
+                                    'key': 'secrettext'
+                                }
+                            }
+                        },
+                        {
+                            'name': 'VSPHERE_PASSWORD',
+                            'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': 'vsphere-service-account-password',
+                                    'key': 'secrettext'
+                                }
+                            }
+                        },
+                        {
+                            'name': 'VSPHERE_SERVER',
+                            'value': '10.73.73.245'
+                        },
+                        {
+                            'name': 'ESXI_HOST',
+                            'value': '10.73.196.33'
+                        },
+                        {
+                            'name': 'ESXI_DATACENTER',
+                            'value': 'Datacenter7.0-AMD'
+                        },
+                        {
+                            'name': 'ESXI_DATASTORE',
+                            'value': 'datastore-33'
+                        },
+                        {
+                            'name': 'TEST_OS',
+                            'value': 'rhel-8-3'
+                        },
+                        {
+                            'name': 'VAULT_PASSWORD',
+                            'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': 'vsphere-service-account-password',
+                                    'key': 'secrettext'
                                 }
                             }
                         },
