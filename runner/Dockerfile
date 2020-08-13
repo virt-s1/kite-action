@@ -55,6 +55,10 @@ RUN dnf -y update && \
         zip && \
     dnf clean all && \
     pip install flake8 pyvmomi boto boto3 openstacksdk && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf aws awscliv2.zip && \
     mkdir -p ${RUNNER_ROOT}
 
 ### The GitHub runner will update itself when receiving a job, if a new release is available.
