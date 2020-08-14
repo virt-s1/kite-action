@@ -39,6 +39,7 @@ RUN dnf -y update && \
         expect \
         gcc \
         gcc-c++ \
+        genisoimage \
         git \
         gnupg \
         jq \
@@ -51,6 +52,7 @@ RUN dnf -y update && \
         sudo \
         supervisor \
         tar \
+        unzip \
         wget \
         zip && \
     dnf clean all && \
