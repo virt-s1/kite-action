@@ -1,0 +1,32 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: kite-sweeper
+spec:
+  schedule: "5 20 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            parent: "cronjobsweeper"
+        spec:
+          containers:
+            - name: kite-sweeper
+              image: docker-registry.default.svc:5000/virt-qe-3rd/kite-sweeper:latest
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 500Mi
+                requests:
+                  cpu: 500m
+                  memory: 250Mi
+              env:
+                - name: GITHUB_ACCESS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      key: token
+                      name: github-access-token
+          restartPolicy: Never
