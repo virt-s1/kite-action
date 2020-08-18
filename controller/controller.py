@@ -64,12 +64,16 @@ def create_runner(repo):
         'kind': 'Pod',
         'apiVersion': 'v1',
         'metadata': {
+            'labels': {
+                'killer': 'kite-internal-runner',
+                'kite': 'self-hosted-runner'
+            },
             'name': repo + "-runner-" + surfix
         },
         'spec': {
             'containers': [
                 {
-                    'name': 'forever-github-runner',
+                    'name': 'github-action-runner',
                     'image': 'docker-registry.default.svc:5000/virt-qe-3rd/github-runner:latest',
                     'imagePullPolicy': 'IfNotPresent',
                     'resources': {
