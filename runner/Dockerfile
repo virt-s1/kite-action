@@ -73,6 +73,7 @@ WORKDIR ${RUNNER_ROOT}
 ### Get action-runner download URL with actions API
 ### That requires GITHUB ACCESS TOKEN argument provided when building image
 RUN DOWNLOAD_URL=$(curl -fsSL -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/virt-s1/actions/runners/downloads | jq -c -r 'map(select(.os == "linux" and .architecture == "x64") | .download_url) | .[]') && \
+    echo ${DOWNLOAD_URL} && \
     curl -L -O ${DOWNLOAD_URL} && \
     tar -zxf actions-runner-linux-x64*.tar.gz && \
     rm -f actions-runner-linux-x64*.tar.gz && \
