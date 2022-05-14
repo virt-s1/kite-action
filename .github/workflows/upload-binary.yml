@@ -1,0 +1,29 @@
+name: Upload action-runner package to S3 if it's new
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'
+
+jobs:
+  pr-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Install Ansible and modules
+        run: |
+          sudo apt update
+          sudo apt install software-properties-common
+          sudo add-apt-repository --yes --update ppa:ansible/ansible
+          sudo apt install ansible
+          ansible-galaxy collection install amazon.aws
+
+      - name: Run Ansible playbook to upload action-runner
+        run: ansible-playbook -v upload/upload_runner_binary.yaml
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}

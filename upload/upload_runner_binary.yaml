@@ -7,15 +7,11 @@
     runner_pkg_tempdir: /tmp
     github_actions_architecture: x64
     access_token: "{{ lookup('env', 'PERSONAL_ACCESS_TOKEN') }}"
-    aws_profile: "{{ lookup('env', 'AWS_PROFILE') }}"
-    aws_region: "{{ lookup('env', 'AWS_REGION') }}"
-    s3_bucket_name: "kite-storage"
+    s3_bucket_name: "{{ lookup('env', 'S3_BUCKET_NAME') }}"
 
   tasks:
     - name: Get the current actions runner version on S3
       amazon.aws.aws_s3:
-        profile: "{{ aws_profile }}"
-        region: "{{ aws_region }}"
         bucket: "{{ s3_bucket_name }}"
         mode: list
         prefix: actions-runner-linux-x64
@@ -52,8 +48,6 @@
 
         - name: Upload action runner "{{ runner_version }}" to S3 bucket
           amazon.aws.aws_s3:
-            profile: "{{ aws_profile }}"
-            region: "{{ aws_region }}"
             bucket: "{{ s3_bucket_name }}"
             mode: put
             src: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ github_actions_architecture }}-{{ runner_version }}.tar.gz"
@@ -65,8 +59,6 @@
 
         - name: "Remove actions-runner-linux-{{ github_actions_architecture }}-{{ current_version }}.tar.gz"
           amazon.aws.aws_s3:
-            profile: "{{ aws_profile }}"
-            region: "{{ aws_region }}"
             bucket: "{{ s3_bucket_name }}"
             mode: delobj
             object: "actions-runner-linux-{{ github_actions_architecture }}-{{ current_version }}.tar.gz"
