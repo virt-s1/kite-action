@@ -1,10 +1,10 @@
 ### Proxy server for kite project on OpenShift
-FROM fedora:32
+FROM quay.io/fedora/fedora:36-x86_64
 
 LABEL name="kite-proxy" \
       maintainer="xiaofwan@redhat.com" \
       vendor="Red Hat QE Section 1" \
-      version="1.0" \
+      version="2.0" \
       release="1" \
       summary="kite proxy server" \
       description="A proxy server to fetch AWS SQS message repeatly" \

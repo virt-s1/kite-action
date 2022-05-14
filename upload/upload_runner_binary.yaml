@@ -1,0 +1,74 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become: no
+  vars:
+    runner_download_repository: "actions/runner"
+    runner_pkg_tempdir: /tmp
+    github_actions_architecture: x64
+    access_token: "{{ lookup('env', 'PERSONAL_ACCESS_TOKEN') }}"
+    aws_profile: "{{ lookup('env', 'AWS_PROFILE') }}"
+    aws_region: "{{ lookup('env', 'AWS_REGION') }}"
+    s3_bucket_name: "kite-storage"
+
+  tasks:
+    - name: Get the current actions runner version on S3
+      amazon.aws.aws_s3:
+        profile: "{{ aws_profile }}"
+        region: "{{ aws_region }}"
+        bucket: "{{ s3_bucket_name }}"
+        mode: list
+        prefix: actions-runner-linux-x64
+      register: runner_result
+
+    - set_fact:
+        current_version: "{{ runner_result.s3_keys[0] | regex_replace('actions-runner-linux-x64-(.*).tar.gz', '\\1') }}"
+      when: runner_result.s3_keys | length > 0
+
+    - name: Find the latest runner version
+      uri:
+        url: "https://api.github.com/repos/{{ runner_download_repository }}/releases/latest"
+        headers:
+          Authorization: "token {{ access_token }}"
+          Content-Type: "application/json"
+        method: GET
+        return_content: yes
+        status_code: 200
+        body_format: json
+      register: api_response
+
+    - name: Set runner_version variable
+      set_fact:
+        runner_version: "{{ api_response.json.tag_name | regex_replace('^v', '') }}"
+
+    - block:
+        - name: Download runner package version - "{{ runner_version }}"
+          get_url:
+            url:
+              "https://github.com/{{ runner_download_repository }}/releases/download/v{{ runner_version }}/\
+              actions-runner-linux-{{ github_actions_architecture }}-{{ runner_version }}.tar.gz"
+            dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ github_actions_architecture }}-{{ runner_version }}.tar.gz"
+            force: no
+
+        - name: Upload action runner "{{ runner_version }}" to S3 bucket
+          amazon.aws.aws_s3:
+            profile: "{{ aws_profile }}"
+            region: "{{ aws_region }}"
+            bucket: "{{ s3_bucket_name }}"
+            mode: put
+            src: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ github_actions_architecture }}-{{ runner_version }}.tar.gz"
+            object: "actions-runner-linux-{{ github_actions_architecture }}-{{ runner_version }}.tar.gz"
+            permission: public-read
+            tags:
+              name: actions-runner
+              version: "{{ runner_version }}"
+
+        - name: "Remove actions-runner-linux-{{ github_actions_architecture }}-{{ current_version }}.tar.gz"
+          amazon.aws.aws_s3:
+            profile: "{{ aws_profile }}"
+            region: "{{ aws_region }}"
+            bucket: "{{ s3_bucket_name }}"
+            mode: delobj
+            object: "actions-runner-linux-{{ github_actions_architecture }}-{{ current_version }}.tar.gz"
+          when: runner_result.s3_keys | length > 0
+      when: current_version is defined and (runner_version is version(current_version, '>')) or (runner_result.s3_keys | length == 0)
