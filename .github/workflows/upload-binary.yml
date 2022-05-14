@@ -1,26 +1,26 @@
 name: Upload action-runner package to S3 if it's new
 on:
-  workflow_dispatch:
   schedule:
     - cron: '0 4 * * *'
 
 jobs:
-  pr-info:
+  upload-binary:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Install Ansible and modules
+      # Ansible has been installed already in github action runner by default
+      # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-Readme.md#tools
+      - name: Install Ansible modules and dependence
         run: |
-          sudo apt update
-          sudo apt install software-properties-common
-          sudo add-apt-repository --yes --update ppa:ansible/ansible
-          sudo apt install ansible
           ansible-galaxy collection install amazon.aws
+          pip install botocore boto3
 
+      # Use system default python3 as ansible python interpreter
+      # By default ansible use /opt/pipx/venvs/ansible-core/bin/python as its python interpreter
       - name: Run Ansible playbook to upload action-runner
-        run: ansible-playbook -v upload/upload_runner_binary.yaml
+        run: ansible-playbook -v -e ansible_python_interpreter=/usr/bin/python3 upload/upload_runner_binary.yaml
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
