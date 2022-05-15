@@ -5,6 +5,8 @@ on:
 
 jobs:
   upload-binary:
+    # Do not run this job on any fork repos
+    if: github.repository == 'virt-s1/kite-action'
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
