@@ -18,7 +18,11 @@ GITHUB_APP_WEBHOOK_SECRET = boto3.client('kms').decrypt(
     EncryptionContext={'LambdaFunctionName': os.environ['AWS_LAMBDA_FUNCTION_NAME']}
 )['Plaintext']
 
-ALLOWED_REPOS = ["virt-s1/kite-demo"]
+ALLOWED_REPOS = [
+    "virt-s1/kite-demo",
+    "virt-s1/kite-action",
+    "virt-s1/rhel-edge"
+]
 
 def kite_webhook_handler(event, context):
     headers = event["headers"]
