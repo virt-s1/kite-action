@@ -3,30 +3,16 @@
 import json
 import os
 import time
-
+import subprocess
 import boto3
-import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
 
 SQS_QUEUE = os.environ["SQS_QUEUE"]
 SQS_REGION = os.environ["SQS_REGION"]
-CONTROLLER_API_NETLOC = os.environ["CONTROLLER_API_NETLOC"]
 
 sqs = boto3.resource("sqs", region_name=SQS_REGION)
 queue = sqs.get_queue_by_name(QueueName=SQS_QUEUE)
 
 print("Fetching message from queue")
-
-# Wordaround issue - Max retries exceeded with URL in requests
-# From: https://stackoverflow.com/questions/23013220
-session = requests.Session()
-retry = Retry(connect=5, backoff_factor=1)
-adapter = HTTPAdapter(max_retries=retry)
-session.mount("https://", adapter)
-session.keep_alive = False
-# Do not need verify certificate because it's internal
-session.verify = False
 
 # All messages in SQS are allowed and valid
 # Do not check/verify message again
@@ -40,18 +26,73 @@ while True:
 
         # Create runner for queued action
         if payload["action"] == "queued":
+            cmd = [
+                "ansible-playbook"
+            ]
             labels = payload["workflow_job"]["labels"]
+
+            # set cloud_profile
+            if "rhos-01" in labels:
+                cmd += ["-e", "cloud_profile=rhos-01"]
+
+            # set os
+            suported_os = [
+                "centos-stream-8",
+                "centos-stream-9",
+                "rhel-8-6",
+                "rhel-8-7",
+                "rhel-9-0",
+                "rhel-9-1"
+            ]
+            for i in suported_os:
+                if i in labels:
+                    cmd += ["-e", "os="+i]
+
+            # set openstack flavor
+            if "large" in labels:
+                cmd += ["-e", "flavor_type=large"]
+
+            # set arch
+            if "x86_64" in labels:
+                cmd += ["-e", "arch=x64"]
+
+            # set repo_fullname
+            cmd += ["-e", "repo_fullname="+payload["repository"]["full_name"]]
+
+            # set runner labels
             label_str = ",".join(labels)
-            # Call API to create runner
-            session.put(CONTROLLER_API_NETLOC + "/runner/create/" + label_str)
+            cmd += ["-e", "runner_labels="+label_str]
+
+            # final ansible playbook
+            cmd += ["proxy/install_runner.yaml"]
+
+            # run ansible playbook
+            subprocess.Popen(cmd)
             print(f"Github runner - {label_str} deploy starting")
 
         # Remove runner instance for completed action
         if payload["action"] == "completed":
+            cmd = [
+                "ansible-playbook"
+            ]
+
+            labels = payload["workflow_job"]["labels"]
+
+            # set cloud_profile
+            if "rhos-01" in labels:
+                cmd += ["-e", "cloud_profile=rhos-01"]
+
+            # set instance name
             runner_name = payload["workflow_job"]["runner_name"]
-            # Call API to delete runner instance
-            session.put(CONTROLLER_API_NETLOC + "/runner/delete/" + runner_name)
-            print(f"Github runner - {runner_name} destroy starting")
+            if runner_name:
+                cmd += ["-e", "instance_name="+runner_name]
+
+                # final ansible playbook
+                cmd += ["proxy/delete_os_instance.yaml"]
+
+                # run ansible playbook to delete instance
+                subprocess.Popen(cmd)
+                print(f"Github runner - {runner_name} destroy starting")
 
         # Delete the message if we made it this far.
         message.delete()
