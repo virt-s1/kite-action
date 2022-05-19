@@ -40,6 +40,21 @@ def kite_webhook_handler(event, context):
             "body": json.dumps("workflow_job event only")
         }
 
+    # Skipped test will not send to SQS
+    # If the test is only on RHEL 8, the other tests will be skipped
+    if body["workflow_job"]["conclusion"] == "skipped":
+        return {
+            "statusCode": 400,
+            "body": json.dumps("Test skipped")
+        }
+
+    # pr-info job in each workflow only uses github action runner
+    if "kite" not in body["workflow_job"]["labels"]:
+        return {
+            "statusCode": 400,
+            "body": json.dumps(f'job {body["workflow_job"]["name"]} does not use self-hosted runner')
+        }
+
     # Totally 3 actions, but only need queue and completed actions in this case
     if body["action"] == "in_progress":
         return {
