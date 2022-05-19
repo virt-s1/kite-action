@@ -188,7 +188,6 @@
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
     runner_user: admin
     runner_dir: /opt/actions-runner
-    runner_pkg_tempdir: /tmp/gh_actions_runner
     hide_sensitive_logs: yes
     github_url: "https://github.com"
     github_api_url: "https://api.github.com"
@@ -259,12 +258,13 @@
         runner_version: "{{ api_response.json.tag_name | regex_replace('^v', '') }}"
 
     - name: Create temporary directory for archive
-      file:
-        path: "{{ runner_pkg_tempdir }}"
+      tempfile:
         state: directory
-        recurse: yes
-        mode: 0777
+      register: tempdir_result
       delegate_to: localhost
+
+    - set_fact:
+        runner_pkg_tempdir: "{{ tempdir_result.path }}"
 
     - name: Download runner package version - "{{ runner_version }}"
       get_url:
@@ -280,6 +280,12 @@
         dest: "{{ runner_dir }}/"
         owner: "{{ runner_user }}"
         mode: 0755
+
+    - name: Remove temporary archive directory
+      file:
+        path: "{{ runner_pkg_tempdir }}"
+        state: absent
+      delegate_to: localhost
 
     - name: Configure custom env file if required
       blockinfile:
