@@ -13,3 +13,4 @@
         cloud: "{{ cloud_profile }}"
         name: "{{ instance_name }}"
         state: absent
+      ignore_errors: yes
