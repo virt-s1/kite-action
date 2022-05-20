@@ -65,8 +65,8 @@ objects:
               imagePullPolicy: IfNotPresent
               resources:
                 limits:
-                  memory: "1Gi"
-                  cpu: "1000m"
+                  memory: "2Gi"
+                  cpu: "2000m"
                 requests:
                   memory: "500Mi"
                   cpu: "512m"
@@ -74,6 +74,10 @@ objects:
                 capabilities: {}
                 privileged: false
               terminationMessagePath: /dev/termination-log
+              volumeMounts:
+                - name: os-secret
+                  mountPath: /run/secrets/os-secret
+                  readOnly: true
               env:
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
@@ -95,11 +99,18 @@ objects:
                     secretKeyRef:
                       name: kite-sqs-queue-region
                       key: queue_region
-                - name: CONTROLLER_API_NETLOC
+                - name: PERSONAL_ACCESS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: kite-controller-api-netloc
-                      key: controller_api_netloc
+                      name: kite-kitebot-pat
+                      key: kitebot_pat
+                - name: OS_CLIENT_CONFIG_FILE
+                  value: "/run/secrets/os-secret/clouds.yaml"
+          volumes:
+            - name: os-secret
+              secret:
+                defaultMode: 420
+                secretName: kite-openstack-cerdential
           dnsPolicy: ClusterFirst
           restartPolicy: Always
       triggers:

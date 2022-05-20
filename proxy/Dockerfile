@@ -4,7 +4,7 @@ FROM quay.io/fedora/fedora:36-x86_64
 LABEL name="kite-proxy" \
       maintainer="xiaofwan@redhat.com" \
       vendor="Red Hat QE Section 1" \
-      version="2.0" \
+      version="2" \
       release="1" \
       summary="kite proxy server" \
       description="A proxy server to fetch AWS SQS message repeatly" \
@@ -23,6 +23,7 @@ RUN update-ca-trust extract
 
 RUN dnf -y update && \
     dnf -y install \
+        ansible-core \
         net-tools \
         procps-ng \
         curl \
@@ -31,12 +32,14 @@ RUN dnf -y update && \
         python3-devel \
         python3-pip && \
     dnf clean all && \
-    pip install boto3 requests && \
+    pip install boto3 botocore openstacksdk && \
+    ansible-galaxy collection install openstack.cloud && \
     mkdir -p ${PROXY_ROOT} && \
     chmod -R g=u ${PROXY_ROOT} /etc/passwd /etc/group && \
     chgrp -R 0 ${PROXY_ROOT}
 
-COPY proxy.py entrypoint.sh /home/proxy/
+COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml /home/proxy/
+COPY key /home/proxy/key/
 RUN chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh}
 
 WORKDIR ${PROXY_ROOT}
