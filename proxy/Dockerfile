@@ -33,7 +33,7 @@ RUN dnf -y update && \
         python3-pip && \
     dnf clean all && \
     pip install boto3 botocore openstacksdk && \
-    ansible-galaxy collection install openstack.cloud && \
+    ansible-galaxy collection install -p /home/proxy/.ansible/collections openstack.cloud && \
     mkdir -p ${PROXY_ROOT} && \
     chmod -R g=u ${PROXY_ROOT} /etc/passwd /etc/group && \
     chgrp -R 0 ${PROXY_ROOT}
