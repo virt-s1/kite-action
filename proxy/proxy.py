@@ -62,7 +62,7 @@ while True:
             cmd += ["-e", "runner_labels="+label_str]
 
             # final ansible playbook
-            cmd += ["proxy/install_runner.yaml"]
+            cmd += ["install_runner.yaml"]
 
             # run ansible playbook
             subprocess.Popen(cmd)
@@ -83,7 +83,7 @@ while True:
                 cmd += ["-e", "instance_name="+runner_name]
 
                 # final ansible playbook
-                cmd += ["proxy/delete_os_instance.yaml"]
+                cmd += ["delete_os_instance.yaml"]
 
                 # run ansible playbook to delete instance
                 subprocess.Popen(cmd)
