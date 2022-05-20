@@ -26,11 +26,9 @@ while True:
 
         # Create runner for queued action
         if payload["action"] == "queued":
-            cmd = [
-                "ansible-playbook"
-            ]
-            labels = payload["workflow_job"]["labels"]
+            cmd = ["ansible-playbook"]
 
+            labels = payload["workflow_job"]["labels"]
             # set cloud_profile
             if "rhos-01" in labels:
                 cmd += ["-e", "cloud_profile=rhos-01"]
@@ -72,12 +70,9 @@ while True:
 
         # Remove runner instance for completed action
         if payload["action"] == "completed":
-            cmd = [
-                "ansible-playbook"
-            ]
+            cmd = ["ansible-playbook"]
 
             labels = payload["workflow_job"]["labels"]
-
             # set cloud_profile
             if "rhos-01" in labels:
                 cmd += ["-e", "cloud_profile=rhos-01"]
