@@ -41,6 +41,7 @@ RUN dnf -y update && \
 COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml ansible.cfg /home/proxy/
 COPY key /home/proxy/key/
 RUN chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh}
+RUN chmod 600 ${PROXY_ROOT}/key/ostree_key
 
 WORKDIR ${PROXY_ROOT}
 

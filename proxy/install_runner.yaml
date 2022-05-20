@@ -172,11 +172,6 @@
         groups: guest
         runner_name: "{{ instance_name }}"
 
-    - name: Keep private key permission to 600
-      file:
-        path: "{{ playbook_dir }}/key/ostree_key"
-        mode: "0600"
-
 - hosts: guest
   gather_facts: no
   become: no
