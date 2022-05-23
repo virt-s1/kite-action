@@ -21,6 +21,11 @@ ADD https://password.corp.redhat.com/RH-IT-Root-CA.crt \
     /etc/pki/ca-trust/source/anchors/
 RUN update-ca-trust extract
 
+RUN mkdir -p ${PROXY_ROOT}
+COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml /home/proxy/
+COPY key /home/proxy/key/
+COPY ansible.cfg /etc/ansible/
+
 RUN dnf -y update && \
     dnf -y install \
         ansible-core \
@@ -34,15 +39,9 @@ RUN dnf -y update && \
     dnf clean all && \
     pip install boto3 botocore openstacksdk==0.61.0 && \
     ansible-galaxy collection install -p /home/proxy/.ansible/collections openstack.cloud && \
-    mkdir -p ${PROXY_ROOT} && \
     chmod -R g=u ${PROXY_ROOT} /etc/passwd /etc/group && \
-    chgrp -R 0 ${PROXY_ROOT}
-
-COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml /home/proxy/
-COPY key /home/proxy/key/
-COPY ansible.cfg /etc/ansible/
-RUN chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh}
-RUN chmod 600 ${PROXY_ROOT}/key/ostree_key
+    chgrp -R 0 ${PROXY_ROOT} && \
+    chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh}
 
 WORKDIR ${PROXY_ROOT}
 
