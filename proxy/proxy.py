@@ -7,6 +7,7 @@ import subprocess
 import pty
 import boto3
 
+# Fix "Inappropriate ioctl for device" error
 _, slave_fd = pty.openpty()
 
 SQS_QUEUE = os.environ["SQS_QUEUE"]
