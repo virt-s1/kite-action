@@ -4,7 +4,10 @@ import json
 import os
 import time
 import subprocess
+import pty
 import boto3
+
+_, slave_fd = pty.openpty()
 
 SQS_QUEUE = os.environ["SQS_QUEUE"]
 SQS_REGION = os.environ["SQS_REGION"]
@@ -64,8 +67,9 @@ while True:
             # final ansible playbook
             cmd += ["install_runner.yaml"]
 
+            print(f"ansible command: {cmd}")
             # run ansible playbook
-            subprocess.Popen(cmd)
+            subprocess.Popen(cmd, stdin=slave_fd)
             print(f"Github runner - {label_str} deploy starting")
 
         # Remove runner instance for completed action
@@ -85,8 +89,9 @@ while True:
                 # final ansible playbook
                 cmd += ["delete_os_instance.yaml"]
 
+                print(f"ansible command: {cmd}")
                 # run ansible playbook to delete instance
-                subprocess.Popen(cmd)
+                subprocess.Popen(cmd, stdin=slave_fd)
                 print(f"Github runner - {runner_name} destroy starting")
 
         # Delete the message if we made it this far.
