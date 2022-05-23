@@ -106,6 +106,10 @@ objects:
                       key: kitebot_pat
                 - name: OS_CLIENT_CONFIG_FILE
                   value: "/run/secrets/os-secret/clouds.yaml"
+                - name: ANSIBLE_LOCAL_TEMP
+                  value: "/home/proxy/.ansible/tmp"
+                - name: ANSIBLE_COLLECTIONS_PATH
+                  value: "/home/proxy/.ansible/collections"
           volumes:
             - name: os-secret
               secret:
