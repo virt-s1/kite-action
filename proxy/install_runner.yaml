@@ -30,6 +30,8 @@
       rhel-9-0: RHEL-9.0.0-x86_64-nightly-latest
       rhel-9-1: RHEL-9.1.0-x86_64-nightly-latest
       fedora-35: Fedora-Cloud-Base-35
+      fedora-36: edge-fedora-36
+      fedora-rawhide: edge-fedora-rawhide
 
   tasks:
     - set_fact:
