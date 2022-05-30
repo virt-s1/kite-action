@@ -39,6 +39,8 @@ while True:
 
             # set os
             suported_os = [
+                "fedora-36",
+                "fedora-rawhide",
                 "centos-stream-8",
                 "centos-stream-9",
                 "rhel-8-6",
