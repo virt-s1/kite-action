@@ -9,6 +9,7 @@
     os: "rhel-9-1"
     flavor:
       large: "ci.standard.large"
+      small: "ci.standard.small"
     repos:
       rhel-8-6:
         baseos: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/BaseOS/x86_64/os/
