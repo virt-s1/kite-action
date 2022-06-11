@@ -264,13 +264,25 @@
     - set_fact:
         runner_pkg_tempdir: "{{ tempdir_result.path }}"
 
-    - name: Download runner package version - "{{ runner_version }}"
+    - name: Download runner package version - "{{ runner_version }}" from S3
       get_url:
         url:
           "https://kite-storage.s3.amazonaws.com/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
         dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
         force: no
+      register: s3_download_result
       delegate_to: localhost
+      ignore_errors: yes
+
+    - name: Download runner package version - "{{ runner_version }}" from github
+      get_url:
+        url:
+          "{{ github_url }}/{{ runner_download_repository }}/releases/download/v{{ runner_version }}/\
+           actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        force: no
+      delegate_to: localhost
+      when: s3_download_result is failed
 
     - name: Unarchive package
       unarchive:
