@@ -36,6 +36,8 @@ while True:
             # set cloud_profile
             if "rhos-01" in labels:
                 cmd += ["-e", "cloud_profile=rhos-01"]
+            if "gcp" in labels:
+                cmd += ["-e", "cloud_profile=gcp"]
 
             # set os
             suported_os = [
@@ -79,24 +81,40 @@ while True:
 
         # Remove runner instance for completed action
         if payload["action"] == "completed":
-            cmd = ["ansible-playbook"]
-
             labels = payload["workflow_job"]["labels"]
-            # set cloud_profile
-            if "rhos-01" in labels:
-                cmd += ["-e", "cloud_profile=rhos-01"]
 
             # set instance name
             runner_name = payload["workflow_job"]["runner_name"]
             if runner_name:
-                cmd += ["-e", "instance_name="+runner_name]
+                if "rhos-01" in labels:
+                    # set cloud_profile
+                    cmd = ["ansible-playbook", "-e", "cloud_profile=rhos-01"]
 
-                # final ansible playbook
-                cmd += ["delete_os_instance.yaml"]
+                    # set runner name
+                    cmd += ["-e", "instance_name="+runner_name]
 
-                print(f"ansible command: {cmd}")
-                # run ansible playbook to delete instance
-                subprocess.Popen(cmd, stdin=slave_fd)
+                    # final ansible playbook
+                    cmd += ["delete_os_instance.yaml"]
+
+                    print(f"ansible command: {cmd}")
+                    # run ansible playbook to delete instance
+                    subprocess.Popen(cmd, stdin=slave_fd)
+
+                if "gcp" in labels:
+                    cmd = [
+                            "gcloud",
+                            "compute",
+                            "instances",
+                            "delete",
+                            runner_name,
+                            "--quiet",
+                            "--zone=us-central1-a",
+                            "--delete-disks=all",
+                            f"--project={os.environ['GCP_PROJECT']}"
+                    ]
+                    print(f"gcloud command: {cmd}")
+                    subprocess.Popen(cmd, stdin=slave_fd)
+
                 print(f"Github runner - {runner_name} destroy starting")
 
         # Delete the message if we made it this far.

@@ -16,32 +16,35 @@ ENV PROXY_ROOT=/home/proxy
 
 USER root
 
-# install red hat root CA to access red hat internal https service
 ADD https://password.corp.redhat.com/RH-IT-Root-CA.crt \
     /etc/pki/ca-trust/source/anchors/
 RUN update-ca-trust extract
 
+# Google Cloud SDK repo
+COPY google-cloud-sdk.repo /etc/yum.repos.d/
+
 RUN mkdir -p ${PROXY_ROOT}
-COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml /home/proxy/
+COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml startup-script.sh /home/proxy
 COPY key /home/proxy/key/
 COPY ansible.cfg /etc/ansible/
 
 RUN dnf -y update && \
     dnf -y install \
         ansible-core \
-        net-tools \
-        procps-ng \
         curl \
         gcc \
+        google-cloud-cli \
+        net-tools \
+        procps-ng \
         python3 \
         python3-devel \
         python3-pip && \
     dnf clean all && \
     pip install boto3 botocore openstacksdk==0.61.0 && \
-    ansible-galaxy collection install -p /home/proxy/.ansible/collections openstack.cloud && \
+    ansible-galaxy collection install -p ${PROXY_ROOT}/.ansible/collections openstack.cloud community.general && \
     chmod -R g=u ${PROXY_ROOT} /etc/passwd /etc/group && \
     chgrp -R 0 ${PROXY_ROOT} && \
-    chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh}
+    chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh,startup-script.sh}
 
 WORKDIR ${PROXY_ROOT}
 
