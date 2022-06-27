@@ -55,10 +55,12 @@ while True:
                     cmd += ["-e", "os="+i]
 
             # set openstack flavor
-            if "large" in labels:
-                cmd += ["-e", "flavor_type=large"]
             if "small" in labels:
                 cmd += ["-e", "flavor_type=small"]
+            if "large" in labels:
+                cmd += ["-e", "flavor_type=large"]
+            if "xlarge" in labels:
+                cmd += ["-e", "flavor_type=xlarge"]
 
             # set arch
             if "x86_64" in labels:

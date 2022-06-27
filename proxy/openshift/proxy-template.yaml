@@ -81,6 +81,9 @@ objects:
                 - name: gcp-sa-file
                   mountPath: /run/secrets/gcp-sa-file
                   readOnly: true
+                - name: crc-ps-file
+                  mountPath: /run/secrets/crc-ps-file
+                  readOnly: true
               env:
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
@@ -117,6 +120,11 @@ objects:
                     secretKeyRef:
                       name: gcp-project
                       key: gcp_project_name
+                - name: PULL_SECRET_FILE
+                  valueFrom:
+                    secretKeyRef:
+                      name: crc-pull-secret-file
+                      key: crc_ps_file
                 - name: OS_CLIENT_CONFIG_FILE
                   value: "/run/secrets/os-secret/clouds.yaml"
                 - name: GCP_SERVICE_ACCOUNT_FILE
@@ -136,6 +144,10 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: gcp-sa-file
+            - name: crc-ps-file
+              secret:
+                defaultMode: 420
+                secretName: crc-ps-file
           dnsPolicy: ClusterFirst
           restartPolicy: Always
       triggers:

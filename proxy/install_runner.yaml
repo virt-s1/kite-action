@@ -13,6 +13,7 @@
         small: "ci.standard.small"
       gcp:
         large: "n2-standard-4"
+        xlarge: "n2-standard-8"
     repos:
       rhel-8-6:
         baseos: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/BaseOS/x86_64/os/
@@ -185,7 +186,7 @@
           command: /usr/bin/gcloud auth activate-service-account --key-file="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
 
         - name: create gcp instance
-          command: /usr/bin/gcloud compute instances create "{{ instance_name }}" --zone=us-central1-a --machine-type="{{ flavor['gcp'][flavor_type] }}" --boot-disk-auto-delete --boot-disk-size=60GB --boot-disk-type=pd-ssd --metadata-from-file=ssh-keys="{{ playbook_dir }}/key/gcp_key",startup-script="{{ playbook_dir }}/startup-script.sh" --metadata=block-project-ssh-keys=TRUE --provisioning-model=SPOT --image-family="{{ image_family[os] }}" --image-project="{{ image_project[os] }}" --enable-nested-virtualization --service-account="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_NAME') }}" --project="{{ lookup('env', 'GCP_PROJECT') }}" --format=json
+          command: /usr/bin/gcloud compute instances create "{{ instance_name }}" --zone=us-central1-a --machine-type="{{ flavor['gcp'][flavor_type] }}" --boot-disk-auto-delete --boot-disk-size=80GB --boot-disk-type=pd-ssd --metadata-from-file=ssh-keys="{{ playbook_dir }}/key/gcp_key",startup-script="{{ playbook_dir }}/startup-script.sh" --metadata=block-project-ssh-keys=TRUE --provisioning-model=SPOT --image-family="{{ image_family[os] }}" --image-project="{{ image_project[os] }}" --enable-nested-virtualization --service-account="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_NAME') }}" --project="{{ lookup('env', 'GCP_PROJECT') }}" --format=json
           register: result_instance
 
         - set_fact:
@@ -254,6 +255,12 @@
         force_basic_auth: yes
       register: registration
       delegate_to: localhost
+
+    - name: Copy CRC pull secret file
+      copy:
+        src: /run/secrets/crc-ps-file/crc-pull-secret
+        dest: "{{ lookup('env', 'PULL_SECRET_FILE') }}"
+      when: cloud_profile == "gcp"
 
     - name: Install dependencies on RHEL/CentOS/Fedora systems
       package:
