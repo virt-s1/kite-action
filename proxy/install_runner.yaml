@@ -262,6 +262,11 @@
         dest: "{{ lookup('env', 'PULL_SECRET_FILE') }}"
       when: cloud_profile == "gcp"
 
+    - name: Enable SHA1 as default crypto prolicy for CS9 and RHEL9
+      command: update-crypto-policies --set DEFAULT:SHA1
+      become: yes
+      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1")
+
     - name: Install dependencies on RHEL/CentOS/Fedora systems
       package:
         name:
