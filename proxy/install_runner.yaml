@@ -200,6 +200,9 @@
         port: 22
         search_regex: OpenSSH
         delay: 10
+      retries: 30
+      register: result_ssh_check
+      until: result_ssh_check is success
 
     - name: Add instance ip into host group guest
       add_host:
