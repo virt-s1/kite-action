@@ -40,11 +40,11 @@
     image_family:
       centos-stream-8: centos-stream-8
       centos-stream-9: centos-stream-9
-      fedora-rawhide: fedora-rawhide
     image_project:
       centos-stream-8: centos-cloud
       centos-stream-9: centos-cloud
-      fedora-rawhide: virt-qe
+    gcp_images:
+      fedora-rawhide: kite-image-fedora-rawhide
 
   tasks:
     - set_fact:
@@ -185,8 +185,16 @@
         - name: gcloud/gsutil - authorizing with a service account
           command: /usr/bin/gcloud auth activate-service-account --key-file="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
 
+        - set_fact:
+            image_args: "--image-family={{ image_family[os] }} --image-project={{ image_project[os] }}"
+          when: "'centos' in os"
+
+        - set_fact:
+            image_args: --image="{{ gcp_images[os] }}"
+          when: "'fedora' in os"
+
         - name: create gcp instance
-          command: /usr/bin/gcloud compute instances create "{{ instance_name }}" --zone=us-central1-a --machine-type="{{ flavor['gcp'][flavor_type] }}" --boot-disk-auto-delete --boot-disk-size=80GB --boot-disk-type=pd-ssd --metadata-from-file=ssh-keys="{{ playbook_dir }}/key/gcp_key",startup-script="{{ playbook_dir }}/startup-script.sh" --metadata=block-project-ssh-keys=TRUE --provisioning-model=SPOT --image-family="{{ image_family[os] }}" --image-project="{{ image_project[os] }}" --enable-nested-virtualization --service-account="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_NAME') }}" --project="{{ lookup('env', 'GCP_PROJECT') }}" --format=json
+          command: /usr/bin/gcloud compute instances create "{{ instance_name }}" --zone=us-central1-a --machine-type="{{ flavor['gcp'][flavor_type] }}" --boot-disk-auto-delete --boot-disk-size=80GB --boot-disk-type=pd-ssd --metadata-from-file=ssh-keys="{{ playbook_dir }}/key/gcp_key",startup-script="{{ playbook_dir }}/startup-script.sh" --metadata=block-project-ssh-keys=TRUE --provisioning-model=SPOT {{ image_args }} --enable-nested-virtualization --service-account="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_NAME') }}" --project="{{ lookup('env', 'GCP_PROJECT') }}" --format=json
           register: result_instance
 
         - set_fact:
