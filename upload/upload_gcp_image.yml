@@ -10,9 +10,11 @@
     os: "fedora-rawhide"
     image_url:
       fedora-rawhide: https://download-cc-rdu01.fedoraproject.org/pub/fedora/linux/development/rawhide/Cloud/x86_64/images
+      fedora-36: https://download.fedoraproject.org/pub/alt/unofficial/releases/36/x86_64/images
     # image name must be a match of regex '[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?|[1-9][0-9]{0,19}'
     gcp_image_name:
       fedora-rawhide: "kite-image-fedora-rawhide"
+      fedora-36: "kite-image-fedora-36"
 
   tasks:
     - name: get latest Fedora rawhide images
@@ -22,7 +24,14 @@
 
     - set_fact:
         image_file_name: "{{ result_file.stdout }}"
-      when: result_file.changed
+      when:
+        - os == "fedora-rawhide"
+        - result_file.changed
+
+    - set_fact:
+        image_file_name: "Fedora-Cloud-Base-GCP-36-20220506.n.0.x86_64.tar.gz"
+      when:
+        - os == "fedora-36"
 
     - name: download image
       get_url:
