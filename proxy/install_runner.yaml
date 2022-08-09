@@ -45,6 +45,8 @@
       centos-stream-9: centos-cloud
     gcp_images:
       fedora-rawhide: kite-image-fedora-rawhide
+      fedora-36: kite-image-fedora-36
+      fedora-37: kite-image-fedora-37
 
   tasks:
     - set_fact:
