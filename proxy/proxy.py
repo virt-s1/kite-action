@@ -48,8 +48,10 @@ while True:
                 "centos-stream-9",
                 "rhel-8-6",
                 "rhel-8-7",
+                "rhel-8-8",
                 "rhel-9-0",
-                "rhel-9-1"
+                "rhel-9-1",
+                "rhel-9-2"
             ]
             for i in suported_os:
                 if i in labels:
