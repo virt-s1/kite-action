@@ -298,7 +298,7 @@
     - name: Enable SHA1 as default crypto prolicy for CS9 and RHEL9
       command: update-crypto-policies --set DEFAULT:SHA1
       become: yes
-      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1")
+      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2")
 
     - name: Install dependencies on RHEL/CentOS/Fedora systems
       package:
