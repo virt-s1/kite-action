@@ -10,7 +10,7 @@
     os: "fedora-rawhide"
     image_url:
       fedora-rawhide: https://download-cc-rdu01.fedoraproject.org/pub/fedora/linux/development/rawhide/Cloud/x86_64/images
-      fedora-37: https://download-cc-rdu01.fedoraproject.org/pub/fedora/linux/development/37/Cloud/x86_64/images/
+      fedora-37: https://download-cc-rdu01.fedoraproject.org/pub/fedora/linux/releases/37/Cloud/x86_64/images
       fedora-36: https://download.fedoraproject.org/pub/alt/unofficial/releases/36/x86_64/images
     # image name must be a match of regex '[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?|[1-9][0-9]{0,19}'
     gcp_image_name:
