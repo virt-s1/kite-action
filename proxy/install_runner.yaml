@@ -201,7 +201,7 @@
           when: tmp_instance_result.changed
 
         - set_fact:
-            instance_ip: "{{ instance_result.openstack.public_v4 }}"
+            instance_ip: "{{ instance_result.server.addresses.shared_net_9[0].addr }}"
       when: cloud_profile == "rhos-01"
 
     - name: Deploy runner on Google Cloud
