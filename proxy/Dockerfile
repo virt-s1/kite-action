@@ -30,6 +30,7 @@ COPY ansible.cfg /etc/ansible/
 
 RUN dnf -y update && \
     dnf -y install \
+        openssh-clients \
         ansible-core \
         curl \
         gcc \
