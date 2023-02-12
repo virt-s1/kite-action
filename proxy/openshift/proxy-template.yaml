@@ -131,6 +131,8 @@ objects:
                   value: "/run/secrets/gcp-sa-file/gcp_service_account.json"
                 - name: ANSIBLE_LOCAL_TEMP
                   value: "/home/proxy/.ansible/tmp"
+                - name: ANSIBLE_HOME
+                  value: "/home/proxy/.ansible"
                 - name: ANSIBLE_COLLECTIONS_PATH
                   value: "/home/proxy/.ansible/collections"
                 - name: CLOUDSDK_CONFIG

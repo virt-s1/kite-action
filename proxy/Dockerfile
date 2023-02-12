@@ -23,7 +23,7 @@ RUN update-ca-trust extract
 # Google Cloud SDK repo
 COPY google-cloud-sdk.repo /etc/yum.repos.d/
 
-RUN mkdir -p ${PROXY_ROOT}
+RUN mkdir -p ${PROXY_ROOT} /.ansible
 COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml startup-script.sh /home/proxy
 COPY key /home/proxy/key/
 COPY ansible.cfg /etc/ansible/
@@ -42,7 +42,7 @@ RUN dnf -y update && \
     dnf clean all && \
     pip install boto3 botocore openstacksdk && \
     ansible-galaxy collection install -p ${PROXY_ROOT}/.ansible/collections openstack.cloud community.general && \
-    chmod -R g=u ${PROXY_ROOT} /etc/passwd /etc/group && \
+    chmod -R g=u ${PROXY_ROOT} /.ansible /etc/passwd /etc/group && \
     chgrp -R 0 ${PROXY_ROOT} && \
     chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh,startup-script.sh}
 
