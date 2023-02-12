@@ -1,5 +1,5 @@
 ### Proxy server for kite project on OpenShift
-FROM quay.io/fedora/fedora:36-x86_64
+FROM quay.io/fedora/fedora:37-x86_64
 
 LABEL name="kite-proxy" \
       maintainer="xiaofwan@redhat.com" \

@@ -48,8 +48,9 @@
       rhel-9-0: RHEL-9.0.0-x86_64-ga-latest
       rhel-9-1: RHEL-9.1.0-x86_64-ga-latest
       rhel-9-2: RHEL-9.2.0-x86_64-nightly-latest
-      fedora-35: Fedora-Cloud-Base-35
       fedora-36: edge-fedora-36
+      fedora-37: edge-fedora-37
+      fedora-38: edge-fedora-38
       fedora-rawhide: edge-fedora-rawhide
     image_family:
       centos-stream-8: centos-stream-8
@@ -61,6 +62,7 @@
       fedora-rawhide: kite-image-fedora-rawhide
       fedora-36: kite-image-fedora-36
       fedora-37: kite-image-fedora-37
+      fedora-38: kite-image-fedora-38
 
   tasks:
     - set_fact:
