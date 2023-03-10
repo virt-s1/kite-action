@@ -1,0 +1,432 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become: no
+  vars:
+    download_node: "{{ lookup('env', 'DOWNLOAD_NODE') }}"
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_connection: local
+    cloud_profile: "rhos-01"
+    os: "rhel-9-2"
+    flavor:
+      rhos-01:
+        large: "ci.standard.large"
+        small: "ci.standard.small"
+        xlarge: "ci.standard.xl"
+      gcp:
+        large: "n2-standard-4"
+        xlarge: "n2-standard-8"
+    repos:
+      rhel-8-6:
+        baseos: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/CRB/x86_64/os/"
+      rhel-8-7:
+        baseos: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/CRB/x86_64/os/"
+      rhel-8-8:
+        baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/CRB/x86_64/os/"
+      rhel-9-0:
+        baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/CRB/x86_64/os/"
+      rhel-9-1:
+        baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/CRB/x86_64/os/"
+      rhel-9-2:
+        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/CRB/x86_64/os/"
+    images:
+      centos-stream-8: edge-centos-stream-8
+      centos-stream-9: edge-centos-stream-9
+      rhel-8-6: RHEL-8.6.0-x86_64-ga-latest
+      rhel-8-7: RHEL-8.7.0-x86_64-ga-latest
+      rhel-8-8: RHEL-8.8.0-x86_64-nightly-latest
+      rhel-9-0: RHEL-9.0.0-x86_64-ga-latest
+      rhel-9-1: RHEL-9.1.0-x86_64-ga-latest
+      rhel-9-2: RHEL-9.2.0-x86_64-nightly-latest
+      fedora-37: edge-stage-fedora-37
+      fedora-38: edge-stage-fedora-38
+      fedora-rawhide: edge-stage-fedora-rawhide
+    image_family:
+      centos-stream-8: centos-stream-8
+      centos-stream-9: centos-stream-9
+    image_project:
+      centos-stream-8: centos-cloud
+      centos-stream-9: centos-cloud
+    gcp_images:
+      fedora-rawhide: kite-image-stage-fedora-rawhide
+      fedora-37: kite-image-stage-fedora-37
+      fedora-38: kite-image-stage-fedora-38
+
+  tasks:
+    - set_fact:
+        random_num: "{{ 9999 | random(start=1001) }}"
+    - set_fact:
+        instance_name: "runner-{{ cloud_profile }}-{{ os }}-{{ flavor_type }}-{{ random_num }}"
+
+    - name: Deploy runner on openstack
+      block:
+        - name: Create keypair for rhel-edge test
+          openstack.cloud.keypair:
+            cloud: "{{ cloud_profile }}"
+            state: present
+            name: "rhel-edge"
+            public_key_file: "{{ playbook_dir }}/key/ostree_key.pub"
+
+        - name: Deploy RHEL instance
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor['rhos-01'][flavor_type] }}"
+            network: "shared_net_9"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+              yum_repos:
+                baseos:
+                  name: rhel-baseos
+                  baseurl: "{{ repos[os]['baseos'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                appstream:
+                  name: rhel-appstream
+                  baseurl: "{{ repos[os]['appstream'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                crb:
+                  name: rhel-crb
+                  baseurl: "{{ repos[os]['crb'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result
+          when: "'rhel' in os"
+
+        # avoid registering a variable when a “when” condition is *not* met
+        - set_fact:
+            instance_result: "{{ tmp_instance_result }}"
+          when: tmp_instance_result.changed
+
+        - name: Deploy CentOS Stream instance
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor['rhos-01'][flavor_type] }}"
+            network: "shared_net_9"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              packages:
+                - python3
+                - python3-dnf
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+          register: tmp_instance_result
+          when: "'centos' in os"
+
+        # avoid registering a variable when a “when” condition is *not* met
+        - set_fact:
+            instance_result: "{{ tmp_instance_result }}"
+          when: tmp_instance_result.changed
+
+        - name: Deploy Fedora instance
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor['rhos-01'][flavor_type] }}"
+            network: "shared_net_9"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              packages:
+                - python3
+                - python3-dnf
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+          register: tmp_instance_result
+          when: "'fedora' in os"
+
+        # avoid registering a variable when a “when” condition is *not* met
+        - set_fact:
+            instance_result: "{{ tmp_instance_result }}"
+          when: tmp_instance_result.changed
+
+        - set_fact:
+            instance_ip: "{{ instance_result.server.addresses.shared_net_9[0].addr }}"
+      when: cloud_profile == "rhos-01"
+
+    - name: Deploy runner on Google Cloud
+      block:
+        - name: gcloud/gsutil - authorizing with a service account
+          command: /usr/bin/gcloud auth activate-service-account --key-file="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
+
+        - set_fact:
+            image_args: "--image-family={{ image_family[os] }} --image-project={{ image_project[os] }}"
+          when: "'centos' in os"
+
+        - set_fact:
+            image_args: --image="{{ gcp_images[os] }}"
+          when: "'fedora' in os"
+
+        - name: create gcp instance
+          command: /usr/bin/gcloud compute instances create "{{ instance_name }}" --zone=us-central1-a --machine-type="{{ flavor['gcp'][flavor_type] }}" --boot-disk-auto-delete --boot-disk-size=80GB --boot-disk-type=pd-ssd --metadata-from-file=ssh-keys="{{ playbook_dir }}/key/gcp_key",startup-script="{{ playbook_dir }}/startup-script.sh" --metadata=block-project-ssh-keys=TRUE --provisioning-model=SPOT {{ image_args }} --enable-nested-virtualization --service-account="{{ lookup('env', 'GCP_SERVICE_ACCOUNT_NAME') }}" --project="{{ lookup('env', 'GCP_PROJECT') }}" --format=json
+          register: result_instance
+
+        - set_fact:
+            instance_ip: "{{ result_instance.stdout | from_json | json_query('[0].networkInterfaces[0].accessConfigs[0].natIP') }}"
+
+      when: cloud_profile == "gcp"
+
+    - name: Waits until instance is reachable
+      wait_for:
+        host: "{{ instance_ip }}"
+        port: 22
+        search_regex: OpenSSH
+        delay: 10
+      retries: 30
+      register: result_ssh_check
+      until: result_ssh_check is success
+
+    - name: Add instance ip into host group guest
+      add_host:
+        name: "{{ instance_ip }}"
+        groups: guest
+        runner_name: "{{ instance_name }}"
+
+- hosts: guest
+  gather_facts: no
+  become: no
+  vars:
+    arch: "x64"
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_user: admin
+    ansible_private_key_file: "{{ playbook_dir }}/key/ostree_key"
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    runner_user: admin
+    runner_dir: /opt/actions-runner
+    hide_sensitive_logs: yes
+    github_url: "https://github.com"
+    github_api_url: "https://api.github.com"
+    access_token: "{{ lookup('env', 'PERSONAL_ACCESS_TOKEN') }}"
+    runner_download_repository: "actions/runner"
+    repo_fullname: "virt-s1/rhel-edge"
+
+  tasks:
+    - name: Ensure cloud-init has finished
+      raw: test -f /var/lib/cloud/instance/boot-finished
+      retries: 60
+      register: cloud_init_check
+      changed_when: false
+      until: cloud_init_check is success
+      when: cloud_profile == "rhos-01"
+
+    - name: Wait 10 seconds for gcp instance user, key and startup script finished
+      wait_for:
+        timeout: 10
+      delegate_to: localhost
+      when: cloud_profile == "gcp"
+
+    - name: Set complete API url for repo runner
+      set_fact:
+        github_full_api_url: "{{ github_api_url }}/repos/{{ repo_fullname }}/actions/runners"
+
+    - name: Get registration token
+      uri:
+        url: "{{ github_full_api_url }}/registration-token"
+        headers:
+          Authorization: "token {{ access_token }}"
+          Accept: "application/vnd.github.v3+json"
+        method: POST
+        status_code: 201
+        force_basic_auth: yes
+      register: registration
+      delegate_to: localhost
+
+    - name: Copy CRC pull secret file
+      copy:
+        src: /run/secrets/crc-ps-file/crc-pull-secret
+        dest: "{{ lookup('env', 'PULL_SECRET_FILE') }}"
+      when: cloud_profile == "gcp"
+
+    - name: Enable SHA1 as default crypto prolicy for CS9 and RHEL9
+      command: update-crypto-policies --set DEFAULT:SHA1
+      become: yes
+      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2")
+
+    - name: Install dependencies on RHEL/CentOS/Fedora systems
+      package:
+        name:
+          - acl
+          - lttng-ust
+          - openssl-libs
+          - krb5-libs
+          - zlib
+          - libicu
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Create directory
+      file:
+        path: "{{ runner_dir }}"
+        state: directory
+        mode: 0755
+        owner: "{{ runner_user }}"
+      become: yes
+
+    - name: Find the latest runner version
+      uri:
+        url: "https://api.github.com/repos/{{ runner_download_repository }}/releases/latest"
+        headers:
+          Authorization: "token {{ access_token }}"
+          Content-Type: "application/json"
+        method: GET
+        return_content: yes
+        status_code: 200
+        body_format: json
+      register: api_response
+      delegate_to: localhost
+
+    - name: Set runner_version variable
+      set_fact:
+        runner_version: "{{ api_response.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Create temporary directory for archive
+      tempfile:
+        state: directory
+      register: tempdir_result
+      delegate_to: localhost
+
+    - set_fact:
+        runner_pkg_tempdir: "{{ tempdir_result.path }}"
+
+    - name: Download runner package version - "{{ runner_version }}" from S3
+      get_url:
+        url:
+          "https://kite-storage-stage.s3.amazonaws.com/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        force: no
+      register: s3_download_result
+      delegate_to: localhost
+      ignore_errors: yes
+
+    - name: Download runner package version - "{{ runner_version }}" from github
+      get_url:
+        url:
+          "{{ github_url }}/{{ runner_download_repository }}/releases/download/v{{ runner_version }}/\
+           actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        force: no
+      delegate_to: localhost
+      when: s3_download_result is failed
+
+    - name: Unarchive package
+      unarchive:
+        src: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_dir }}/"
+        owner: "{{ runner_user }}"
+        mode: 0755
+
+    - name: Remove temporary archive directory
+      file:
+        path: "{{ runner_pkg_tempdir }}"
+        state: absent
+      delegate_to: localhost
+
+    - name: Configure custom env file if required
+      blockinfile:
+        path: "{{ runner_dir }}/.env"
+        block: "{{ custom_env }}"
+        owner: "{{ runner_user }}"
+        create: yes
+        mode: 0755
+        marker_begin: "# BEGIN ANSIBLE MANAGED BLOCK"
+        marker_end: "# END ANSIBLE MANAGED BLOCK"
+      when: custom_env is defined
+
+    - name: Set complete GitHub url for repo runner
+      set_fact:
+        github_full_url: "{{ github_url }}/{{ repo_fullname }}"
+
+    - name: Register runner
+      command:
+        "{{ runner_dir }}/./config.sh \
+        --url {{ github_full_url }} \
+        --token {{ registration.json.token }} \
+        --name {{ runner_name }} \
+        --labels {{ runner_labels }} \
+        --unattended \
+        --ephemeral \
+        --disableupdate"
+      args:
+        chdir: "{{ runner_dir }}"
+      become: yes
+      become_user: "{{ runner_user }}"
+      # no_log: "{{ hide_sensitive_logs | bool }}"
+
+    - name: Install service
+      command: "./svc.sh install {{ runner_user }}"
+      args:
+        chdir: "{{ runner_dir }}"
+      become: yes
+
+    - name: Read service name from file
+      slurp:
+        src: "{{ runner_dir }}/.service"
+      register: runner_service
+
+    - name: START and enable Github Actions Runner service
+      systemd:
+        name: "{{ runner_service.content | b64decode | replace('\n', '') }}"
+        state: started
+        enabled: yes
+      become: yes

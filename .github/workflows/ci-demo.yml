@@ -1,0 +1,12 @@
+---
+name: CI Demo Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ci-runner-demo:
+    runs-on: [kite, x86_64, rhos-01, rhel-9-2, large]
+    steps:
+      - name: Show all environment variables
+        run: printenv

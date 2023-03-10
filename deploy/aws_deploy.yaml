@@ -2,13 +2,20 @@
 - hosts: localhost
   become: no
   vars:
+    ci_env: "prod"
     aws_profile: "{{ lookup('env', 'AWS_PROFILE') }}"
     aws_region: "{{ lookup('env', 'AWS_REGION') }}"
-    sqs_name: "kite-webhook"
+    sqs_name:
+      prod: "kite-webhook"
+      stage: "kite-webhook-stage"
     sqs_policy_file: "{{ lookup('env', 'SQS_POLICY_FILE') }}"
-    kms_alias: "kite-webhook"
+    kms_alias:
+      prod: "kite-webhook"
+      stage: "kite-webhook-stage"
     kms_policy_file: "{{ lookup('env', 'KMS_POLICY_FILE') }}"
-    s3_bucket_name: "kite-storage"
+    s3_bucket_name:
+      prod: "kite-storage"
+      stage: "kite-storage-stage"
 
 
   tasks:
@@ -16,20 +23,20 @@
       community.aws.sqs_queue:
         profile: "{{ aws_profile }}"
         region: "{{ aws_region }}"
-        name: "{{ sqs_name }}"
+        name: "{{ sqs_name[ci_env] }}"
         visibility_timeout: 30
         message_retention_period: 86400
         maximum_message_size: 262144
         policy: "{{ lookup('file', sqs_policy_file) | from_json }}"
         tags:
           kite: webhook
-          name: "{{ sqs_name }}"
+          name: "{{ sqs_name[ci_env] }}"
 
     - name: get SQS queue URL
       community.aws.sqs_queue:
         profile: "{{ aws_profile }}"
         region: "{{ aws_region }}"
-        name: "{{ sqs_name }}"
+        name: "{{ sqs_name[ci_env] }}"
       register: sqs_result
       retries: 5
       until: sqs_result.queue_url != "null"
@@ -41,7 +48,7 @@
       community.aws.aws_kms:
         profile: "{{ aws_profile }}"
         region: "{{ aws_region }}"
-        alias: "{{ kms_alias }}"
+        alias: "{{ kms_alias[ci_env] }}"
         description: "KMS for kite-edge, used by lambda env encrypt"
         enable_key_rotation: no
         enabled: yes
@@ -50,13 +57,13 @@
         policy: "{{ lookup('file', kms_policy_file) | from_json }}"
         tags:
           kite: webhook
-          name: "{{ kms_alias }}"
+          name: "{{ kms_alias[ci_env] }}"
       register: kms_result
 
     - name: deploy S3 bucket
       amazon.aws.aws_s3:
         profile: "{{ aws_profile }}"
         region: "{{ aws_region }}"
-        bucket: "{{ s3_bucket_name }}"
+        bucket: "{{ s3_bucket_name[ci_env] }}"
         mode: create
         permission: public-read
