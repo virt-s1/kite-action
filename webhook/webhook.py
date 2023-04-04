@@ -4,24 +4,17 @@ import json
 import hmac
 import hashlib
 import os
-from base64 import b64decode
 import logging
 
 import boto3
 from botocore.exceptions import ClientError
 
-ENCRYPTED_GITHUB_APP_WEBHOOK_SECRET = os.environ['GITHUB_APP_WEBHOOK_SECRET']
-# Decrypt code should run once and variables stored outside of the function
-# handler so that these are decrypted once per container
-GITHUB_APP_WEBHOOK_SECRET = boto3.client('kms').decrypt(
-    CiphertextBlob=b64decode(ENCRYPTED_GITHUB_APP_WEBHOOK_SECRET),
-    EncryptionContext={'LambdaFunctionName': os.environ['AWS_LAMBDA_FUNCTION_NAME']}
-)['Plaintext']
+GITHUB_APP_WEBHOOK_SECRET = os.environ['GITHUB_APP_WEBHOOK_SECRET']
+# The hmac.new function wants the key argument to be of type bytes or bytearray
+hmac_key = bytes(GITHUB_APP_WEBHOOK_SECRET, 'UTF-8')
 
 ALLOWED_REPOS = [
-    "virt-s1/kite-demo",
-    "virt-s1/kite-action",
-    "virt-s1/rhel-edge"
+    "virt-s1/osbuild-composer-ci"
 ]
 
 def kite_webhook_handler(event, context):
@@ -71,7 +64,7 @@ def kite_webhook_handler(event, context):
 
     # Create local hash of payload
     digest = hmac.new(
-        GITHUB_APP_WEBHOOK_SECRET,
+        hmac_key,
         event["body"].encode(),
         hashlib.sha256
     ).hexdigest()
