@@ -1,4 +1,5 @@
 kite-secret-template.yaml
+vault.txt
 .pyc
 webhook.zip
 aws_policy/
