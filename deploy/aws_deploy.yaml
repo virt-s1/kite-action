@@ -72,7 +72,7 @@
 
     - name: create a zip archive
       community.general.archive:
-        path: "/home/xiaofwan/workspace/redhat/kite-action/webhook/webhook.py"
+        path: "{{ playbook_dir }}/../webhook/webhook.py"
         dest: "{{ temp_result.path }}/webhook.zip"
         format: zip
 
