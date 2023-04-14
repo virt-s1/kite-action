@@ -10,7 +10,7 @@ import boto3
 # Fix "Inappropriate ioctl for device" error
 _, slave_fd = pty.openpty()
 
-SQS_QUEUE = os.environ["SQS_QUEUE"]
+SQS_QUEUE = os.environ["SQS_QUEUE_COMPOSER"]
 SQS_REGION = os.environ["SQS_REGION"]
 
 sqs = boto3.resource("sqs", region_name=SQS_REGION)
@@ -36,12 +36,13 @@ while True:
             # set cloud_profile
             if "rhos-01" in labels:
                 cmd += ["-e", "cloud_profile=rhos-01"]
+            if "rhos-d" in labels:
+                cmd += ["-e", "cloud_profile=rhos-d"]
             if "gcp" in labels:
                 cmd += ["-e", "cloud_profile=gcp"]
 
             # set os
             suported_os = [
-                "fedora-36",
                 "fedora-37",
                 "fedora-38",
                 "fedora-rawhide",
@@ -95,6 +96,20 @@ while True:
                 if "rhos-01" in labels:
                     # set cloud_profile
                     cmd = ["ansible-playbook", "-e", "cloud_profile=rhos-01"]
+
+                    # set runner name
+                    cmd += ["-e", "instance_name="+runner_name]
+
+                    # final ansible playbook
+                    cmd += ["delete_os_instance.yaml"]
+
+                    print(f"ansible command: {cmd}")
+                    # run ansible playbook to delete instance
+                    subprocess.Popen(cmd, stdin=slave_fd)
+
+                if "rhos-d" in labels:
+                    # set cloud_profile
+                    cmd = ["ansible-playbook", "-e", "cloud_profile=rhos-d"]
 
                     # set runner name
                     cmd += ["-e", "instance_name="+runner_name]

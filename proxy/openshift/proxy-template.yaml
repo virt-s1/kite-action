@@ -2,13 +2,13 @@
 kind: Template
 apiVersion: v1
 labels:
-  app: kite-proxy
-  template: kite-proxy-template
+  app: kite-proxy-composer
+  template: kite-proxy-composer-template
 metadata:
-  name: kite-proxy
+  name: kite-proxy-composer
   annotations:
-    openshift.io/display-name: kite proxy
-    tags: kite,proxy,kite-proxy
+    openshift.io/display-name: kite proxy composer
+    tags: kite,proxy,kite-proxy-composer,composer
 
 objects:
   - kind: ImageStream
@@ -95,10 +95,10 @@ objects:
                     secretKeyRef:
                       name: kite-aws-secret-access-key
                       key: secret
-                - name: SQS_QUEUE
+                - name: SQS_QUEUE_COMPOSER
                   valueFrom:
                     secretKeyRef:
-                      name: kite-sqs-queue-name
+                      name: kite-sqs-queue-name-composer
                       key: queue_name
                 - name: SQS_REGION
                   valueFrom:
@@ -113,22 +113,27 @@ objects:
                 - name: GCP_SERVICE_ACCOUNT_NAME
                   valueFrom:
                     secretKeyRef:
-                      name: gcp-service-account-name
+                      name: gcp-service-account-name-composer
                       key: gcp_sa_name
                 - name: GCP_PROJECT
                   valueFrom:
                     secretKeyRef:
-                      name: gcp-project
+                      name: gcp-project-composer
                       key: gcp_project_name
                 - name: PULL_SECRET_FILE
                   valueFrom:
                     secretKeyRef:
                       name: crc-pull-secret-file
                       key: crc_ps_file
+                - name: DOWNLOAD_NODE
+                  valueFrom:
+                    secretKeyRef:
+                      name: rhel-repo-download-node
+                      key: download_node
                 - name: OS_CLIENT_CONFIG_FILE
                   value: "/run/secrets/os-secret/clouds.yaml"
                 - name: GCP_SERVICE_ACCOUNT_FILE
-                  value: "/run/secrets/gcp-sa-file/gcp_service_account.json"
+                  value: "/run/secrets/gcp-sa-file/edge-qe-dev-91556f820ec8.json"
                 - name: ANSIBLE_LOCAL_TEMP
                   value: "/home/proxy/.ansible/tmp"
                 - name: ANSIBLE_HOME
@@ -141,11 +146,11 @@ objects:
             - name: os-secret
               secret:
                 defaultMode: 420
-                secretName: kite-openstack-cerdential
+                secretName: kite-openstack-cerdential-02
             - name: gcp-sa-file
               secret:
                 defaultMode: 420
-                secretName: gcp-sa-file
+                secretName: gcp-sa-file-composer
             - name: crc-ps-file
               secret:
                 defaultMode: 420
@@ -176,12 +181,12 @@ parameters:
   - description: The git ref or tag to use for customization.
     displayName: Git Reference
     name: REPO_REF
-    value: master
+    value: composer_ci
   - name: KITE_PROXY_NAME
     displayName: kite proxy APP name
     description: The name of the kite proxy application.
-    value: kite-proxy
+    value: kite-proxy-composer
   - name: KITE_PROXY_IMAGE_STREAM_TAG
     displayName: kite proxy ImageStreamTag
     description: Name of the ImageStreamTag to be used for the kite proxy image.
-    value: kite-proxy:latest
+    value: kite-proxy-composer:latest

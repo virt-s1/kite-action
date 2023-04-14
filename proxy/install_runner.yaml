@@ -3,42 +3,51 @@
   gather_facts: no
   become: no
   vars:
+    download_node: "{{ lookup('env', 'DOWNLOAD_NODE') }}"
     ansible_python_interpreter: /usr/bin/python3
     ansible_connection: local
-    cloud_profile: "rhos-01"
+    cloud_profile: "rhos-d"
     os: "rhel-9-2"
+    os_network:
+      rhos-01: "shared_net_9"
+      rhos-d: "provider_net_shared_2"
     flavor:
       rhos-01:
         large: "ci.standard.large"
         small: "ci.standard.small"
+        xlarge: "ci.standard.xl"
+      rhos-d:
+        large: "ci.standard.large"
+        small: "ci.standard.small"
+        xlarge: "ci.standard.xl"
       gcp:
         large: "n2-standard-4"
         xlarge: "n2-standard-8"
     repos:
       rhel-8-6:
-        baseos: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/BaseOS/x86_64/os/
-        appstream: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/AppStream/x86_64/os/
-        crb: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/CRB/x86_64/os/
+        baseos: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.6.0/compose/CRB/x86_64/os/"
       rhel-8-7:
-        baseos: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/BaseOS/x86_64/os/
-        appstream: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/AppStream/x86_64/os/
-        crb: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/CRB/x86_64/os/
+        baseos: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/CRB/x86_64/os/"
       rhel-8-8:
-        baseos: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/BaseOS/x86_64/os/
-        appstream: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/AppStream/x86_64/os/
-        crb: http://download-node-02.eng.bos.redhat.com/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/CRB/x86_64/os/
+        baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/CRB/x86_64/os/"
       rhel-9-0:
-        baseos: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/BaseOS/x86_64/os/
-        appstream: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/AppStream/x86_64/os/
-        crb: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/CRB/x86_64/os/
+        baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/CRB/x86_64/os/"
       rhel-9-1:
-        baseos: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/BaseOS/x86_64/os/
-        appstream: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/AppStream/x86_64/os/
-        crb: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/CRB/x86_64/os/
+        baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/CRB/x86_64/os/"
       rhel-9-2:
-        baseos: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/BaseOS/x86_64/os/
-        appstream: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/AppStream/x86_64/os/
-        crb: http://download-node-02.eng.bos.redhat.com/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/CRB/x86_64/os/
+        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
       centos-stream-9: edge-centos-stream-9
@@ -48,10 +57,9 @@
       rhel-9-0: RHEL-9.0.0-x86_64-ga-latest
       rhel-9-1: RHEL-9.1.0-x86_64-ga-latest
       rhel-9-2: RHEL-9.2.0-x86_64-nightly-latest
-      fedora-36: edge-fedora-36
-      fedora-37: edge-fedora-37
-      fedora-38: edge-fedora-38
-      fedora-rawhide: edge-fedora-rawhide
+      fedora-37: edge-stage-fedora-37
+      fedora-38: edge-stage-fedora-38
+      fedora-rawhide: edge-stage-fedora-rawhide
     image_family:
       centos-stream-8: centos-stream-8
       centos-stream-9: centos-stream-9
@@ -60,7 +68,6 @@
       centos-stream-9: centos-cloud
     gcp_images:
       fedora-rawhide: kite-image-fedora-rawhide
-      fedora-36: kite-image-fedora-36
       fedora-37: kite-image-fedora-37
       fedora-38: kite-image-fedora-38
 
@@ -84,8 +91,8 @@
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
             image: "{{ images[os] }}"
-            flavor: "{{ flavor['rhos-01'][flavor_type] }}"
-            network: "shared_net_9"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
             key_name: "rhel-edge"
             security_groups: ssh_only
             auto_ip: yes
@@ -137,8 +144,8 @@
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
             image: "{{ images[os] }}"
-            flavor: "{{ flavor['rhos-01'][flavor_type] }}"
-            network: "shared_net_9"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
             key_name: "rhel-edge"
             security_groups: ssh_only
             auto_ip: yes
@@ -171,8 +178,8 @@
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
             image: "{{ images[os] }}"
-            flavor: "{{ flavor['rhos-01'][flavor_type] }}"
-            network: "shared_net_9"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
             key_name: "rhel-edge"
             security_groups: ssh_only
             auto_ip: yes
@@ -202,7 +209,12 @@
 
         - set_fact:
             instance_ip: "{{ instance_result.server.addresses.shared_net_9[0].addr }}"
-      when: cloud_profile == "rhos-01"
+          when: cloud_profile == "rhos-01"
+
+        - set_fact:
+            instance_ip: "{{ instance_result.server.addresses.provider_net_shared_2[0].addr }}"
+          when: cloud_profile == "rhos-d"
+      when: cloud_profile == "rhos-01" or cloud_profile == "rhos-d"
 
     - name: Deploy runner on Google Cloud
       block:
@@ -352,7 +364,7 @@
     - name: Download runner package version - "{{ runner_version }}" from S3
       get_url:
         url:
-          "https://kite-storage.s3.amazonaws.com/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+          "https://kite-storage-stage.s3.amazonaws.com/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
         dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
         force: no
       register: s3_download_result
