@@ -10,7 +10,7 @@ import boto3
 # Fix "Inappropriate ioctl for device" error
 _, slave_fd = pty.openpty()
 
-SQS_QUEUE = os.environ["SQS_QUEUE"]
+SQS_QUEUE = os.environ["SQS_QUEUE_DEV"]
 SQS_REGION = os.environ["SQS_REGION"]
 
 sqs = boto3.resource("sqs", region_name=SQS_REGION)

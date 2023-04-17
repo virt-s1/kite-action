@@ -1,7 +1,7 @@
 ### Proxy server for kite project on OpenShift
-FROM quay.io/fedora/fedora:37-x86_64
+FROM quay.io/fedora/fedora:38-x86_64
 
-LABEL name="kite-proxy" \
+LABEL name="kite-proxy-dev" \
       maintainer="xiaofwan@redhat.com" \
       vendor="Red Hat QE Section 1" \
       version="2" \
@@ -9,8 +9,8 @@ LABEL name="kite-proxy" \
       summary="kite proxy server" \
       description="A proxy server to fetch AWS SQS message repeatly" \
       io.k8s.description="A proxy server to fetch AWS SQS message repeatly" \
-      io.k8s.display-name="kite proxy" \
-      io.openshift.tags="kite-proxy,kite,proxy"
+      io.k8s.display-name="kite proxy dev" \
+      io.openshift.tags="kite-proxy-dev,kite,proxy,dev"
 
 ENV PROXY_ROOT=/home/proxy
 
