@@ -5,8 +5,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci-runner-demo:
-    runs-on: [kite, x86_64, rhos-01, rhel-9-2, large]
+  # runner-rhel-9-2:
+  #   runs-on: [kite, x86_64, rhos-01, rhel-9-2, large]
+  #   steps:
+  #     - name: Show all environment variables
+  #       run: printenv
+
+  runner-beaker-arm:
+    runs-on: [kite, aarch64, beaker, fedora-37]
     steps:
       - name: Show all environment variables
         run: printenv
