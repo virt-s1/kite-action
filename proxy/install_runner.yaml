@@ -227,6 +227,133 @@
 
       when: cloud_profile == "gcp"
 
+    - name: Deploy runner on beaker
+      block:
+        - name: generate job xml
+          template:
+            src: beaker-job.j2
+            dest: beaker-job.xml
+
+        - name: submit beaker job attempt 1
+          command: bkr job-submit beaker-job.xml
+          register: job_result_1
+
+        - name: got job id
+          set_fact:
+            job_id_1: "{{ job_result_1.stdout.split(\"'\")[1] }}"
+
+        # the deployment watchdog time is 40 minutes
+        # beaker job will be marked as aborted after watchdog time reached
+        - name: wait for job complete 1
+          command: bkr job-results --prettyxml {{ job_id_1 }}
+          register: job_finished_1
+          retries: 50
+          delay: 60
+          until: "'result=\"Pass\" status=\"Running\"' in job_finished_1.stdout"
+          ignore_errors: true
+
+        - set_fact:
+            job_finished: "{{ job_finished_1 }}"
+            job_id: "{{ job_id_1 }}"
+          when: job_finished_1 is succeeded
+
+        # Request beaker server the 2nd time
+        - name: delete old job
+          command: bkr job-cancel "{{ job_id_1 }}"
+          ignore_errors: true
+          when: job_finished_1 is failed
+
+        - name: submit beaker job 2
+          command: bkr job-submit beaker-job.xml
+          register: job_result_2
+          when: job_finished_1 is failed
+
+        - name: got job id
+          set_fact:
+            job_id_2: "{{ job_result_2.stdout.split(\"'\")[1] }}"
+          when: job_finished_1 is failed
+
+        # the deployment watchdog time is 40 minutes
+        # beaker job will be marked as aborted after watchdog time reached
+        - name: wait for job complete 2
+          command: bkr job-results --prettyxml {{ job_id_2 }}
+          register: job_finished_2
+          retries: 50
+          delay: 60
+          until: "'result=\"Pass\" status=\"Running\"' in job_finished_2.stdout"
+          when: job_finished_1 is failed
+          ignore_errors: true
+
+        - set_fact:
+            job_finished: "{{ job_finished_2 }}"
+            job_id: "{{ job_id_2 }}"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is succeeded
+
+        # Request beaker server the 3rd time
+        - name: delete old job
+          command: bkr job-cancel "{{ job_id_2 }}"
+          ignore_errors: true
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        - name: submit beaker job 3
+          command: bkr job-submit beaker-job.xml
+          register: job_result_3
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        - name: got job id
+          set_fact:
+            job_id_3: "{{ job_result_3.stdout.split(\"'\")[1] }}"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        # the deployment watchdog time is 40 minutes
+        # beaker job will be marked as aborted after watchdog time reached
+        - name: wait for job complete 3
+          command: bkr job-results --prettyxml {{ job_id_3 }}
+          register: job_finished_3
+          retries: 50
+          delay: 60
+          until: "'result=\"Pass\" status=\"Running\"' in job_finished_3.stdout"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        - set_fact:
+            job_finished: "{{ job_finished_3 }}"
+            job_id: "{{ job_id_3 }}"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+            - job_finished_3 is succeeded
+
+        - name: write job-results output to xml file
+          copy:
+            content: "{{ job_finished.stdout }}"
+            dest: job-result-output.xml
+
+        - name: get hostname from job-results output
+          xml:
+            path: job-result-output.xml
+            xpath: /job/recipeSet/recipe
+            content: attribute
+          register: recipe_attribute
+
+        - name: set hostname of ostree client
+          set_fact:
+            instance_ip: "{{ recipe_attribute.matches[0].recipe.system }}"
+
+        - set_fact:
+            instance_name: "runner-{{ cloud_profile }}-{{ os }}-{{ job_id | replace(':', '_')}}"
+
+      when: cloud_profile == "beaker"
+
     - name: Waits until instance is reachable
       wait_for:
         host: "{{ instance_ip }}"
@@ -243,11 +370,17 @@
         groups: guest
         runner_name: "{{ instance_name }}"
 
+    # # Dev enviornment needs this setting
+    # - name: set private key permisson to 600
+    #   file:
+    #     path: key/ostree_key
+    #     mode: "0600"
+
 - hosts: guest
   gather_facts: no
   become: no
   vars:
-    arch: "x64"
+    arch_short: "x64"
     ansible_python_interpreter: /usr/bin/python3
     ansible_user: admin
     ansible_private_key_file: "{{ playbook_dir }}/key/ostree_key"
@@ -312,6 +445,8 @@
           - krb5-libs
           - zlib
           - libicu
+          - tar
+          - unzip
         state: present
         update_cache: yes
       become: yes
@@ -350,11 +485,15 @@
     - set_fact:
         runner_pkg_tempdir: "{{ tempdir_result.path }}"
 
+    - set_fact:
+        arch_short: "arm64"
+      when: arch == "aarch64"
+
     - name: Download runner package version - "{{ runner_version }}" from S3
       get_url:
         url:
-          "https://kite-storage.s3.amazonaws.com/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
-        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+          "https://kite-storage.s3.amazonaws.com/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         force: no
       register: s3_download_result
       delegate_to: localhost
@@ -364,15 +503,15 @@
       get_url:
         url:
           "{{ github_url }}/{{ runner_download_repository }}/releases/download/v{{ runner_version }}/\
-           actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
-        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+           actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         force: no
       delegate_to: localhost
       when: s3_download_result is failed
 
     - name: Unarchive package
       unarchive:
-        src: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        src: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         dest: "{{ runner_dir }}/"
         owner: "{{ runner_user }}"
         mode: 0755

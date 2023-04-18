@@ -24,7 +24,7 @@ RUN update-ca-trust extract
 COPY google-cloud-sdk.repo /etc/yum.repos.d/
 
 RUN mkdir -p ${PROXY_ROOT} /.ansible
-COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml startup-script.sh /home/proxy
+COPY proxy.py entrypoint.sh install_runner.yaml delete_os_instance.yaml startup-script.sh beaker-job.j2 /home/proxy
 COPY key /home/proxy/key/
 COPY ansible.cfg /etc/ansible/
 
@@ -32,6 +32,7 @@ RUN dnf -y update && \
     dnf -y install \
         openssh-clients \
         ansible-core \
+        beaker-client \
         curl \
         gcc \
         google-cloud-cli \
@@ -46,6 +47,8 @@ RUN dnf -y update && \
     chmod -R g=u ${PROXY_ROOT} /.ansible /etc/passwd /etc/group && \
     chgrp -R 0 ${PROXY_ROOT} && \
     chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh,startup-script.sh}
+
+COPY client.conf /etc/beaker/
 
 WORKDIR ${PROXY_ROOT}
 
