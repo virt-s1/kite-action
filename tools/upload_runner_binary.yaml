@@ -10,16 +10,43 @@
     s3_bucket_name: "{{ lookup('env', 'S3_BUCKET_NAME') }}"
 
   tasks:
-    - name: Get the current actions runner version on S3
+    - name: Get the current x86_64 actions runner version on S3
       amazon.aws.aws_s3:
         bucket: "{{ s3_bucket_name }}"
         mode: list
         prefix: actions-runner-linux-x64
-      register: runner_result
+      register: runner_result_x64
+      when: github_actions_architecture == "x64"
 
     - set_fact:
-        current_version: "{{ runner_result.s3_keys[0] | regex_replace('actions-runner-linux-x64-(.*).tar.gz', '\\1') }}"
-      when: runner_result.s3_keys | length > 0
+        current_version: "{{ runner_result_x64.s3_keys[0] | regex_replace('actions-runner-linux-x64-(.*).tar.gz', '\\1') }}"
+      when:
+        - github_actions_architecture == "x64"
+        - runner_result_x64 is not skipped
+        - runner_result_x64.s3_keys | length > 0
+
+    - set_fact:
+        runner_result: "{{ runner_result_x64 }}"
+      when: runner_result_x64 is not skipped
+
+    - name: Get the current arm64 actions runner version on S3
+      amazon.aws.aws_s3:
+        bucket: "{{ s3_bucket_name }}"
+        mode: list
+        prefix: actions-runner-linux-arm64
+      register: runner_result_arm64
+      when: github_actions_architecture == "arm64"
+
+    - set_fact:
+        current_version: "{{ runner_result_arm64.s3_keys[0] | regex_replace('actions-runner-linux-arm64-(.*).tar.gz', '\\1') }}"
+      when:
+        - github_actions_architecture == "arm64"
+        - runner_result_arm64 is not skipped
+        - runner_result_arm64.s3_keys | length > 0
+
+    - set_fact:
+        runner_result: "{{ runner_result_arm64 }}"
+      when: runner_result_arm64 is not skipped
 
     - name: Find the latest runner version
       uri:
