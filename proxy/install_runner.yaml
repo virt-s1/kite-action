@@ -28,6 +28,10 @@
         baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/BaseOS/x86_64/os/"
         appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/AppStream/x86_64/os/"
         crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/CRB/x86_64/os/"
+      rhel-8-9:
+        baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/CRB/x86_64/os/"
       rhel-9-0:
         baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/BaseOS/x86_64/os/"
         appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/AppStream/x86_64/os/"
@@ -40,15 +44,21 @@
         baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/BaseOS/x86_64/os/"
         appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/AppStream/x86_64/os/"
         crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/CRB/x86_64/os/"
+      rhel-9-3:
+        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
       centos-stream-9: edge-centos-stream-9
       rhel-8-6: RHEL-8.6.0-x86_64-ga-latest
       rhel-8-7: RHEL-8.7.0-x86_64-ga-latest
       rhel-8-8: RHEL-8.8.0-x86_64-nightly-latest
+      rhel-8-9: RHEL-8.9.0-x86_64-nightly-latest
       rhel-9-0: RHEL-9.0.0-x86_64-ga-latest
       rhel-9-1: RHEL-9.1.0-x86_64-ga-latest
       rhel-9-2: RHEL-9.2.0-x86_64-nightly-latest
+      rhel-9-3: RHEL-9.3.0-x86_64-nightly-latest
       fedora-36: edge-fedora-36
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
@@ -434,7 +444,7 @@
     - name: Enable SHA1 as default crypto prolicy for CS9 and RHEL9
       command: update-crypto-policies --set DEFAULT:SHA1
       become: yes
-      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2")
+      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2") or (os == "rhel-9-3")
 
     - name: Install dependencies on RHEL/CentOS/Fedora systems
       package:
@@ -492,7 +502,7 @@
     - name: Download runner package version - "{{ runner_version }}" from S3
       get_url:
         url:
-          "https://kite-storage.s3.amazonaws.com/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
+          "https://kite-webhook-prod.s3.amazonaws.com/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         force: no
       register: s3_download_result

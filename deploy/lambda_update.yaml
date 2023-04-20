@@ -3,7 +3,7 @@
   become: no
   vars:
     prefix: "kite-webhook"
-    project: "dev"
+    project: "edge"
     aws_profile: "{{ lookup('env', 'AWS_PROFILE') }}"
     aws_region: "{{ lookup('env', 'AWS_REGION') }}"
 

@@ -2,13 +2,13 @@
 kind: Template
 apiVersion: v1
 labels:
-  app: kite-proxy-dev
-  template: kite-proxy-template-dev
+  app: kite-proxy-edge
+  template: kite-proxy-template-edge
 metadata:
-  name: kite-proxy-dev
+  name: kite-proxy-edge
   annotations:
-    openshift.io/display-name: kite proxy dev
-    tags: kite,proxy,kite-proxy-dev,dev
+    openshift.io/display-name: kite proxy edge
+    tags: kite,proxy,kite-proxy-edge,edge
 
 objects:
   - kind: ImageStream
@@ -101,10 +101,10 @@ objects:
                     secretKeyRef:
                       name: kite-aws-secret-access-key
                       key: secret
-                - name: SQS_QUEUE_DEV
+                - name: SQS_QUEUE_EDGE
                   valueFrom:
                     secretKeyRef:
-                      name: kite-sqs-queue-name-dev
+                      name: kite-sqs-queue-name-edge
                       key: queue_name
                 - name: SQS_REGION
                   valueFrom:
@@ -197,12 +197,12 @@ parameters:
   - description: The git ref or tag to use for customization.
     displayName: Git Reference
     name: REPO_REF
-    value: dev
+    value: rhel-edge
   - name: KITE_PROXY_NAME
     displayName: kite proxy APP name
     description: The name of the kite proxy application.
-    value: kite-proxy-dev
+    value: kite-proxy-edge
   - name: KITE_PROXY_IMAGE_STREAM_TAG
     displayName: kite proxy ImageStreamTag
     description: Name of the ImageStreamTag to be used for the kite proxy image.
-    value: kite-proxy-dev:latest
+    value: kite-proxy-edge:latest
