@@ -90,7 +90,7 @@
             name: "rhel-edge"
             public_key_file: "{{ playbook_dir }}/key/ostree_key.pub"
 
-        - name: Deploy RHEL instance
+        - name: Deploy RHEL instance attempt 1
           openstack.cloud.server:
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
@@ -135,15 +135,37 @@
               packages:
                 - python3
                 - python3-dnf
-          register: tmp_instance_result
+          register: tmp_instance_result_1
+          ignore_errors: yes
           when: "'rhel' in os"
 
-        # avoid registering a variable when a “when” condition is *not* met
-        - set_fact:
-            instance_result: "{{ tmp_instance_result }}"
-          when: tmp_instance_result.changed
+        - name: Makre sure VM is running attempt 1
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_1
+          retries: 20
+          until: instance_status_result_1.servers[0].vm_state == "active" and instance_status_result_1.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when: "'rhel' in os"
 
-        - name: Deploy CentOS Stream instance
+        - name: Delete instance if attempt 1 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - "'rhel' in os"
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_1.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is succeeded
+
+        - name: Deploy RHEL instance attempt 2
           openstack.cloud.server:
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
@@ -158,9 +180,6 @@
             timeout: 600
             userdata: |
               #cloud-config
-              packages:
-                - python3
-                - python3-dnf
               users:
                 - default
                 - name: admin
@@ -169,15 +188,65 @@
                   sudo: ALL=(ALL) NOPASSWD:ALL
                   ssh_authorized_keys:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
-          register: tmp_instance_result
-          when: "'centos' in os"
+              yum_repos:
+                baseos:
+                  name: rhel-baseos
+                  baseurl: "{{ repos[os]['baseos'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                appstream:
+                  name: rhel-appstream
+                  baseurl: "{{ repos[os]['appstream'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                crb:
+                  name: rhel-crb
+                  baseurl: "{{ repos[os]['crb'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_2
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
 
-        # avoid registering a variable when a “when” condition is *not* met
+        - name: Makre sure VM is running attempt 2
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_2
+          retries: 20
+          until: instance_status_result_2.servers[0].vm_state == "active" and instance_status_result_2.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+
+        - name: Delete instance if attempt 2 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - "'rhel' in os"
+
         - set_fact:
-            instance_result: "{{ tmp_instance_result }}"
-          when: tmp_instance_result.changed
+            instance_ip: "{{ instance_status_result_2.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - instance_status_result_2 is succeeded
+            - instance_status_result_1 is failed
 
-        - name: Deploy Fedora instance
+        - name: Deploy RHEL instance attempt 3
           openstack.cloud.server:
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
@@ -192,9 +261,6 @@
             timeout: 600
             userdata: |
               #cloud-config
-              packages:
-                - python3
-                - python3-dnf
               users:
                 - default
                 - name: admin
@@ -203,16 +269,76 @@
                   sudo: ALL=(ALL) NOPASSWD:ALL
                   ssh_authorized_keys:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
-          register: tmp_instance_result
-          when: "'fedora' in os"
+              yum_repos:
+                baseos:
+                  name: rhel-baseos
+                  baseurl: "{{ repos[os]['baseos'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                appstream:
+                  name: rhel-appstream
+                  baseurl: "{{ repos[os]['appstream'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                crb:
+                  name: rhel-crb
+                  baseurl: "{{ repos[os]['crb'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_3
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
 
-        # avoid registering a variable when a “when” condition is *not* met
-        - set_fact:
-            instance_result: "{{ tmp_instance_result }}"
-          when: tmp_instance_result.changed
+        - name: Makre sure VM is running attempt 3
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_3
+          retries: 20
+          until: instance_status_result_3.servers[0].vm_state == "active" and instance_status_result_3.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Delete instance if attempt 3 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
 
         - set_fact:
-            instance_ip: "{{ instance_result.server.addresses.shared_net_9[0].addr }}"
+            instance_ip: "{{ instance_status_result_3.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - instance_status_result_3 is succeeded
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Failed rhos-01 deployment
+          fail:
+            msg: The 3 times vm deployments failed
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
       when: cloud_profile == "rhos-01"
 
     - name: Deploy runner on Google Cloud
