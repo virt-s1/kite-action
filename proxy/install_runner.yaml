@@ -919,7 +919,8 @@
   tasks:
     - name: Ensure cloud-init has finished
       raw: test -f /var/lib/cloud/instance/boot-finished
-      retries: 60
+      retries: 30
+      delay: 20
       register: cloud_init_check
       changed_when: false
       until: cloud_init_check is success
