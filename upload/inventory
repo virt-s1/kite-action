@@ -1,10 +1,14 @@
 [gcp]
 localhost
 
+[openstack]
+localhost
+
 [guest]
 
 [cloud:children]
 gcp
+openstack
 
 [remote:children]
 guest
