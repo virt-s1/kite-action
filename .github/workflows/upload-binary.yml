@@ -22,7 +22,7 @@ jobs:
       # Use system default python3 as ansible python interpreter
       # By default ansible use /opt/pipx/venvs/ansible-core/bin/python as its python interpreter
       - name: Run Ansible playbook to upload action-runner
-        run: ansible-playbook -v -e ansible_python_interpreter=/usr/bin/python3 upload/upload_runner_binary.yaml
+        run: ansible-playbook -v -e ansible_python_interpreter=/usr/bin/python3 tools/upload_runner_binary.yaml
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
