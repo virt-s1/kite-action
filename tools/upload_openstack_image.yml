@@ -5,6 +5,7 @@
   vars:
     os: "fedora-38"
     arch: "x86_64"
+    cloud_profile: "rhos-01"
     image_url:
       fedora-rawhide: https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/Cloud/x86_64/images
       fedora-38: https://dl.fedoraproject.org/pub/fedora/linux/releases/38/Cloud/x86_64/images
@@ -23,6 +24,9 @@
       fedora-37: fedora
       fedora-38: fedora
       fedora-rawhide: fedora
+    os_network:
+      rhos-01: "shared_net_9"
+      rhos-d: "provider_net_shared_2"
 
   tasks:
     - name: get latest CentOS Stream 9 images
@@ -77,7 +81,7 @@
 
     - name: upload tmp image to psi openstack
       openstack.cloud.image:
-        cloud: rhos-01
+        cloud: "{{ cloud_profile }}"
         name: "tmp-edge-{{ os }}"
         filename: "/tmp/{{ image_name }}"
         # https://docs.openstack.org/glance/latest/admin/useful-image-properties.html
@@ -90,11 +94,11 @@
     - block:
         - name: deploy image test instance
           openstack.cloud.server:
-            cloud: rhos-01
+            cloud: "{{ cloud_profile }}"
             name: "edge-image-test-{{ os }}"
             image: "tmp-edge-{{ os }}"
             flavor: "ci.standard.large"
-            network: "shared_net_9"
+            network: "{{ os_network[cloud_profile] }}"
             key_name: rhel-edge
             security_groups: ssh_only
             auto_ip: yes
@@ -116,16 +120,24 @@
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
           register: instance_result
 
+        - set_fact:
+            instance_ip_addr: "{{ instance_result.server.addresses.shared_net_9[0].addr }}"
+          when: cloud_profile == "rhos-01"
+
+        - set_fact:
+            instance_ip_addr: "{{ instance_result.server.addresses.provider_net_shared_2[0].addr }}"
+          when: cloud_profile == "rhos-d"
+
         - name: waits until instance is reachable
           wait_for:
-            host: "{{ instance_result.openstack.public_v4 }}"
+            host: "{{ instance_ip_addr }}"
             port: 22
             search_regex: OpenSSH
             delay: 10
 
         - name: add os instance ip into host group builder
           add_host:
-            name: "{{ instance_result.openstack.public_v4 }}"
+            name: "{{ instance_ip_addr }}"
             groups: guest
 
         - name: keep private key permission to 600
@@ -139,7 +151,7 @@
           register: cloud_init_check
           changed_when: false
           until: cloud_init_check is success
-          delegate_to: "{{ instance_result.openstack.public_v4 }}"
+          delegate_to: "{{ instance_ip_addr }}"
 
         # https://cloudinit.readthedocs.io/en/latest/topics/modules.html#growpart
         # 10G image will be resized to 40G (disk size)
@@ -147,7 +159,7 @@
           command: df -h
           become: yes
           register: result_growpart
-          delegate_to: "{{ instance_result.openstack.public_v4 }}"
+          delegate_to: "{{ instance_ip_addr }}"
 
         - name: disk growpart not support
           fail:
@@ -161,7 +173,7 @@
       rescue:
         - name: remove tmp image
           openstack.cloud.image:
-            cloud: rhos-01
+            cloud: "{{ cloud_profile }}"
             name: "tmp-edge-{{ os }}"
             state: absent
 
@@ -172,25 +184,25 @@
       always:
         - name: remove image test instance
           openstack.cloud.server:
-            cloud: rhos-01
+            cloud: "{{ cloud_profile }}"
             name: "edge-image-test-{{ os }}"
             state: absent
 
         - name: delete tested tmp image
           openstack.cloud.image:
-            cloud: rhos-01
+            cloud: "{{ cloud_profile }}"
             name: "tmp-edge-{{ os }}"
             state: absent
 
     - name: "delete last {{ os }} openstack image"
       openstack.cloud.image:
-        cloud: rhos-01
+        cloud: "{{ cloud_profile }}"
         name: edge-{{ os }}
         state: absent
 
     - name: "upload new {{ os }} openstack image to psi"
       openstack.cloud.image:
-        cloud: rhos-01
+        cloud: "{{ cloud_profile }}"
         name: "edge-{{ os }}"
         filename: "/tmp/{{ image_name }}"
         # https://docs.openstack.org/glance/latest/admin/useful-image-properties.html
