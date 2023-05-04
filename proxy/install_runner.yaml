@@ -33,9 +33,13 @@
         appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/AppStream/x86_64/os/"
         crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.7.0/compose/CRB/x86_64/os/"
       rhel-8-8:
-        baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/BaseOS/x86_64/os/"
-        appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/AppStream/x86_64/os/"
-        crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.8.0/compose/CRB/x86_64/os/"
+        baseos: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.8.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.8.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.8.0/compose/CRB/x86_64/os/"
+      rhel-8-9:
+        baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/CRB/x86_64/os/"
       rhel-9-0:
         baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/BaseOS/x86_64/os/"
         appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/AppStream/x86_64/os/"
@@ -45,21 +49,27 @@
         appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/AppStream/x86_64/os/"
         crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.1.0/compose/CRB/x86_64/os/"
       rhel-9-2:
-        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/BaseOS/x86_64/os/"
-        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/AppStream/x86_64/os/"
-        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.2.0/compose/CRB/x86_64/os/"
+        baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.2.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.2.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.2.0/compose/CRB/x86_64/os/"
+      rhel-9-3:
+        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
       centos-stream-9: edge-centos-stream-9
       rhel-8-6: RHEL-8.6.0-x86_64-ga-latest
       rhel-8-7: RHEL-8.7.0-x86_64-ga-latest
       rhel-8-8: RHEL-8.8.0-x86_64-nightly-latest
+      rhel-8-9: RHEL-8.9.0-x86_64-nightly-latest
       rhel-9-0: RHEL-9.0.0-x86_64-ga-latest
       rhel-9-1: RHEL-9.1.0-x86_64-ga-latest
       rhel-9-2: RHEL-9.2.0-x86_64-nightly-latest
-      fedora-37: edge-stage-fedora-37
-      fedora-38: edge-stage-fedora-38
-      fedora-rawhide: edge-stage-fedora-rawhide
+      rhel-9-3: RHEL-9.3.0-x86_64-nightly-latest
+      fedora-37: edge-fedora-37
+      fedora-38: edge-fedora-38
+      fedora-rawhide: edge-fedora-rawhide
     image_family:
       centos-stream-8: centos-stream-8
       centos-stream-9: centos-stream-9
@@ -86,7 +96,7 @@
             name: "rhel-edge"
             public_key_file: "{{ playbook_dir }}/key/ostree_key.pub"
 
-        - name: Deploy RHEL instance
+        - name: Deploy RHEL instance attempt1
           openstack.cloud.server:
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
@@ -131,15 +141,45 @@
               packages:
                 - python3
                 - python3-dnf
-          register: tmp_instance_result
+          register: tmp_instance_result_1
+          ignore_errors: yes
           when: "'rhel' in os"
 
-        # avoid registering a variable when a “when” condition is *not* met
-        - set_fact:
-            instance_result: "{{ tmp_instance_result }}"
-          when: tmp_instance_result.changed
+        - name: Makre sure VM is running attempt 1
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_1
+          retries: 20
+          until: instance_status_result_1.servers[0].vm_state == "active" and instance_status_result_1.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when: "'rhel' in os"
 
-        - name: Deploy CentOS Stream instance
+        - name: Delete instance if attempt 1 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - "'rhel' in os"
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_1.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_1 is succeeded
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_1.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_1 is succeeded
+
+        - name: Deploy RHEL instance attempt 2
           openstack.cloud.server:
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
@@ -154,9 +194,6 @@
             timeout: 600
             userdata: |
               #cloud-config
-              packages:
-                - python3
-                - python3-dnf
               users:
                 - default
                 - name: admin
@@ -165,15 +202,74 @@
                   sudo: ALL=(ALL) NOPASSWD:ALL
                   ssh_authorized_keys:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
-          register: tmp_instance_result
-          when: "'centos' in os"
+              yum_repos:
+                baseos:
+                  name: rhel-baseos
+                  baseurl: "{{ repos[os]['baseos'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                appstream:
+                  name: rhel-appstream
+                  baseurl: "{{ repos[os]['appstream'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                crb:
+                  name: rhel-crb
+                  baseurl: "{{ repos[os]['crb'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_2
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
 
-        # avoid registering a variable when a “when” condition is *not* met
+        - name: Makre sure VM is running attempt 2
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_2
+          retries: 20
+          until: instance_status_result_2.servers[0].vm_state == "active" and instance_status_result_2.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+
+        - name: Delete instance if attempt 2 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - "'rhel' in os"
+
         - set_fact:
-            instance_result: "{{ tmp_instance_result }}"
-          when: tmp_instance_result.changed
+            instance_ip: "{{ instance_status_result_2.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_2 is succeeded
+            - instance_status_result_1 is failed
 
-        - name: Deploy Fedora instance
+        - set_fact:
+            instance_ip: "{{ instance_status_result_2.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_2 is succeeded
+            - instance_status_result_1 is failed
+
+        - name: Deploy RHEL instance attempt 3
           openstack.cloud.server:
             cloud: "{{ cloud_profile }}"
             name: "{{ instance_name }}"
@@ -188,9 +284,6 @@
             timeout: 600
             userdata: |
               #cloud-config
-              packages:
-                - python3
-                - python3-dnf
               users:
                 - default
                 - name: admin
@@ -199,21 +292,527 @@
                   sudo: ALL=(ALL) NOPASSWD:ALL
                   ssh_authorized_keys:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
-          register: tmp_instance_result
+              yum_repos:
+                baseos:
+                  name: rhel-baseos
+                  baseurl: "{{ repos[os]['baseos'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                appstream:
+                  name: rhel-appstream
+                  baseurl: "{{ repos[os]['appstream'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+                crb:
+                  name: rhel-crb
+                  baseurl: "{{ repos[os]['crb'] }}"
+                  enabled: true
+                  gpgcheck: false
+                  sslverify: false
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_3
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Makre sure VM is running attempt 3
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_3
+          retries: 20
+          until: instance_status_result_3.servers[0].vm_state == "active" and instance_status_result_3.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Delete instance if attempt 3 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_3.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_3 is succeeded
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_3.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'rhel' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_3 is succeeded
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Failed openstack deployment
+          fail:
+            msg: The 3 times vm deployments failed
+          when:
+            - "'rhel' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
+
+        - name: Deploy Fedora instance attempt 1
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_1
+          ignore_errors: yes
           when: "'fedora' in os"
 
-        # avoid registering a variable when a “when” condition is *not* met
-        - set_fact:
-            instance_result: "{{ tmp_instance_result }}"
-          when: tmp_instance_result.changed
+        - name: Makre sure VM is running attempt 1
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_1
+          retries: 20
+          until: instance_status_result_1.servers[0].vm_state == "active" and instance_status_result_1.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when: "'fedora' in os"
+
+        - name: Delete instance if attempt 1 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - "'fedora' in os"
 
         - set_fact:
-            instance_ip: "{{ instance_result.server.addresses.shared_net_9[0].addr }}"
-          when: cloud_profile == "rhos-01"
+            instance_ip: "{{ instance_status_result_1.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'fedora' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_1 is succeeded
 
         - set_fact:
-            instance_ip: "{{ instance_result.server.addresses.provider_net_shared_2[0].addr }}"
-          when: cloud_profile == "rhos-d"
+            instance_ip: "{{ instance_status_result_1.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'fedora' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_1 is succeeded
+
+        - name: Deploy Fedora instance attempt 2
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_2
+          ignore_errors: yes
+          when:
+            - "'fedora' in os"
+            - instance_status_result_1 is failed
+
+        - name: Makre sure VM is running attempt 2
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_2
+          retries: 20
+          until: instance_status_result_2.servers[0].vm_state == "active" and instance_status_result_2.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'fedora' in os"
+            - instance_status_result_1 is failed
+
+        - name: Delete instance if attempt 2 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - "'fedora' in os"
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_2.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'fedora' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_2 is succeeded
+            - instance_status_result_1 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_2.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'fedora' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_2 is succeeded
+            - instance_status_result_1 is failed
+
+        - name: Deploy Fedora instance attempt 3
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_3
+          ignore_errors: yes
+          when:
+            - "'fedora' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Makre sure VM is running attempt 3
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_3
+          retries: 20
+          until: instance_status_result_3.servers[0].vm_state == "active" and instance_status_result_3.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'fedora' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Delete instance if attempt 3 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - "'fedora' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_3.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'fedora' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_3 is succeeded
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_3.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'fedora' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_3 is succeeded
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Failed openstack deployment
+          fail:
+            msg: The 3 times vm deployments failed
+          when:
+            - "'fedora' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
+
+        - name: Deploy CS instance attempt 1
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_1
+          ignore_errors: yes
+          when: "'centos' in os"
+
+        - name: Makre sure VM is running attempt 1
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_1
+          retries: 20
+          until: instance_status_result_1.servers[0].vm_state == "active" and instance_status_result_1.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when: "'centos' in os"
+
+        - name: Delete instance if attempt 1 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - "'centos' in os"
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_1.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'centos' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_1 is succeeded
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_1.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'centos' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_1 is succeeded
+
+        - name: Deploy CS instance attempt 2
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_2
+          ignore_errors: yes
+          when:
+            - "'centos' in os"
+            - instance_status_result_1 is failed
+
+        - name: Makre sure VM is running attempt 2
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_2
+          retries: 20
+          until: instance_status_result_2.servers[0].vm_state == "active" and instance_status_result_2.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'centos' in os"
+            - instance_status_result_1 is failed
+
+        - name: Delete instance if attempt 2 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - "'centos' in os"
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_2.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'centos' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_2 is succeeded
+            - instance_status_result_1 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_2.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'centos' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_2 is succeeded
+            - instance_status_result_1 is failed
+
+        - name: Deploy CS instance attempt 3
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            image: "{{ images[os] }}"
+            flavor: "{{ flavor[cloud_profile][flavor_type] }}"
+            network: "{{ os_network[cloud_profile] }}"
+            key_name: "rhel-edge"
+            security_groups: ssh_only
+            auto_ip: yes
+            config_drive: yes
+            wait: yes
+            timeout: 600
+            userdata: |
+              #cloud-config
+              users:
+                - default
+                - name: admin
+                  gecos: Administrator
+                  groups: users,wheel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzxo5dEcS+LDK/OFAfHo6740EyoDM8aYaCkBala0FnWfMMTOq7PQe04ahB0eFLS3IlQtK5bpgzxBdFGVqF6uT5z4hhaPjQec0G3+BD5Pxo6V+SxShKZo+ZNGU3HVrF9p2V7QH0YFQj5B8F6AicA3fYh2BVUFECTPuMpy5A52ufWu0r4xOFmbU7SIhRQRAQz2u4yjXqBsrpYptAvyzzoN4gjUhNnwOHSPsvFpWoBFkWmqn0ytgHg3Vv9DlHW+45P02QH1UFedXR2MqLnwRI30qqtaOkVS+9rE/dhnR+XPpHHG+hv2TgMDAuQ3IK7Ab5m/yCbN73cxFifH4LST0vVG3Jx45xn+GTeHHhfkAfBSCtya6191jixbqyovpRunCBKexI5cfRPtWOitM3m7Mq26r7LpobMM+oOLUm4p0KKNIthWcmK9tYwXWSuGGfUQ+Y8gt7E0G06ZGbCPHOrxJ8lYQqXsif04piONPA/c9Hq43O99KPNGShONCS9oPFdOLRT3U= ostree-image-test
+              packages:
+                - python3
+                - python3-dnf
+          register: tmp_instance_result_3
+          ignore_errors: yes
+          when:
+            - "'centos' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Makre sure VM is running attempt 3
+          openstack.cloud.server_info:
+            cloud: "{{ cloud_profile }}"
+            server: "{{ instance_name }}"
+          register: instance_status_result_3
+          retries: 20
+          until: instance_status_result_3.servers[0].vm_state == "active" and instance_status_result_3.servers[0].access_ipv4 != ""
+          ignore_errors: yes
+          when:
+            - "'centos' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Delete instance if attempt 3 vm has error
+          openstack.cloud.server:
+            cloud: "{{ cloud_profile }}"
+            name: "{{ instance_name }}"
+            state: absent
+          ignore_errors: yes
+          when:
+            - "'centos' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_3.servers[0].addresses.shared_net_9[0].addr }}"
+          when:
+            - "'centos' in os"
+            - cloud_profile == "rhos-01"
+            - instance_status_result_3 is succeeded
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - set_fact:
+            instance_ip: "{{ instance_status_result_3.servers[0].addresses.provider_net_shared_2[0].addr }}"
+          when:
+            - "'centos' in os"
+            - cloud_profile == "rhos-d"
+            - instance_status_result_3 is succeeded
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+
+        - name: Failed openstack deployment
+          fail:
+            msg: The 3 times vm deployments failed
+          when:
+            - "'centos' in os"
+            - instance_status_result_1 is failed
+            - instance_status_result_2 is failed
+            - instance_status_result_3 is failed
+
       when: cloud_profile == "rhos-01" or cloud_profile == "rhos-d"
 
     - name: Deploy runner on Google Cloud
@@ -238,6 +837,133 @@
 
       when: cloud_profile == "gcp"
 
+    - name: Deploy runner on beaker
+      block:
+        - name: generate job xml
+          template:
+            src: beaker-job.j2
+            dest: beaker-job.xml
+
+        - name: submit beaker job attempt 1
+          command: bkr job-submit beaker-job.xml
+          register: job_result_1
+
+        - name: got job id
+          set_fact:
+            job_id_1: "{{ job_result_1.stdout.split(\"'\")[1] }}"
+
+        # the deployment watchdog time is 40 minutes
+        # beaker job will be marked as aborted after watchdog time reached
+        - name: wait for job complete 1
+          command: bkr job-results --prettyxml {{ job_id_1 }}
+          register: job_finished_1
+          retries: 50
+          delay: 60
+          until: "'result=\"Pass\" status=\"Running\"' in job_finished_1.stdout"
+          ignore_errors: true
+
+        - set_fact:
+            job_finished: "{{ job_finished_1 }}"
+            job_id: "{{ job_id_1 }}"
+          when: job_finished_1 is succeeded
+
+        # Request beaker server the 2nd time
+        - name: delete old job
+          command: bkr job-cancel "{{ job_id_1 }}"
+          ignore_errors: true
+          when: job_finished_1 is failed
+
+        - name: submit beaker job 2
+          command: bkr job-submit beaker-job.xml
+          register: job_result_2
+          when: job_finished_1 is failed
+
+        - name: got job id
+          set_fact:
+            job_id_2: "{{ job_result_2.stdout.split(\"'\")[1] }}"
+          when: job_finished_1 is failed
+
+        # the deployment watchdog time is 40 minutes
+        # beaker job will be marked as aborted after watchdog time reached
+        - name: wait for job complete 2
+          command: bkr job-results --prettyxml {{ job_id_2 }}
+          register: job_finished_2
+          retries: 50
+          delay: 60
+          until: "'result=\"Pass\" status=\"Running\"' in job_finished_2.stdout"
+          when: job_finished_1 is failed
+          ignore_errors: true
+
+        - set_fact:
+            job_finished: "{{ job_finished_2 }}"
+            job_id: "{{ job_id_2 }}"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is succeeded
+
+        # Request beaker server the 3rd time
+        - name: delete old job
+          command: bkr job-cancel "{{ job_id_2 }}"
+          ignore_errors: true
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        - name: submit beaker job 3
+          command: bkr job-submit beaker-job.xml
+          register: job_result_3
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        - name: got job id
+          set_fact:
+            job_id_3: "{{ job_result_3.stdout.split(\"'\")[1] }}"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        # the deployment watchdog time is 40 minutes
+        # beaker job will be marked as aborted after watchdog time reached
+        - name: wait for job complete 3
+          command: bkr job-results --prettyxml {{ job_id_3 }}
+          register: job_finished_3
+          retries: 50
+          delay: 60
+          until: "'result=\"Pass\" status=\"Running\"' in job_finished_3.stdout"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+
+        - set_fact:
+            job_finished: "{{ job_finished_3 }}"
+            job_id: "{{ job_id_3 }}"
+          when:
+            - job_finished_1 is failed
+            - job_finished_2 is failed
+            - job_finished_3 is succeeded
+
+        - name: write job-results output to xml file
+          copy:
+            content: "{{ job_finished.stdout }}"
+            dest: job-result-output.xml
+
+        - name: get hostname from job-results output
+          xml:
+            path: job-result-output.xml
+            xpath: /job/recipeSet/recipe
+            content: attribute
+          register: recipe_attribute
+
+        - name: set hostname of ostree client
+          set_fact:
+            instance_ip: "{{ recipe_attribute.matches[0].recipe.system }}"
+
+        - set_fact:
+            instance_name: "runner-{{ cloud_profile }}-{{ os }}-{{ job_id | replace(':', '_')}}"
+
+      when: cloud_profile == "beaker"
+
     - name: Waits until instance is reachable
       wait_for:
         host: "{{ instance_ip }}"
@@ -258,7 +984,7 @@
   gather_facts: no
   become: no
   vars:
-    arch: "x64"
+    arch_short: "x64"
     ansible_python_interpreter: /usr/bin/python3
     ansible_user: admin
     ansible_private_key_file: "{{ playbook_dir }}/key/ostree_key"
@@ -275,11 +1001,12 @@
   tasks:
     - name: Ensure cloud-init has finished
       raw: test -f /var/lib/cloud/instance/boot-finished
-      retries: 60
+      retries: 30
+      delay: 20
       register: cloud_init_check
       changed_when: false
       until: cloud_init_check is success
-      when: cloud_profile == "rhos-01"
+      when: cloud_profile == "rhos-01" or cloud_profile == "rhos-d"
 
     - name: Wait 10 seconds for gcp instance user, key and startup script finished
       wait_for:
@@ -312,7 +1039,7 @@
     - name: Enable SHA1 as default crypto prolicy for CS9 and RHEL9
       command: update-crypto-policies --set DEFAULT:SHA1
       become: yes
-      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2")
+      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2") or (os == "rhel-9-3")
 
     - name: Install dependencies on RHEL/CentOS/Fedora systems
       package:
@@ -323,6 +1050,8 @@
           - krb5-libs
           - zlib
           - libicu
+          - tar
+          - unzip
         state: present
         update_cache: yes
       become: yes
@@ -361,11 +1090,15 @@
     - set_fact:
         runner_pkg_tempdir: "{{ tempdir_result.path }}"
 
+    - set_fact:
+        arch_short: "arm64"
+      when: arch == "aarch64"
+
     - name: Download runner package version - "{{ runner_version }}" from S3
       get_url:
         url:
-          "https://kite-storage-stage.s3.amazonaws.com/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
-        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+          "https://kite-webhook-prod.s3.amazonaws.com/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         force: no
       register: s3_download_result
       delegate_to: localhost
@@ -375,15 +1108,15 @@
       get_url:
         url:
           "{{ github_url }}/{{ runner_download_repository }}/releases/download/v{{ runner_version }}/\
-           actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
-        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+           actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
+        dest: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         force: no
       delegate_to: localhost
       when: s3_download_result is failed
 
     - name: Unarchive package
       unarchive:
-        src: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch }}-{{ runner_version }}.tar.gz"
+        src: "{{ runner_pkg_tempdir }}/actions-runner-linux-{{ arch_short }}-{{ runner_version }}.tar.gz"
         dest: "{{ runner_dir }}/"
         owner: "{{ runner_user }}"
         mode: 0755

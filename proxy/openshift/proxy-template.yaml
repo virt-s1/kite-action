@@ -84,6 +84,12 @@ objects:
                 - name: crc-ps-file
                   mountPath: /run/secrets/crc-ps-file
                   readOnly: true
+                - name: beaker-keytab-file
+                  mountPath: /run/secrets/beaker-keytab-file
+                  readOnly: true
+                - name: kerberos-conf
+                  mountPath: /run/secrets/kerberos-conf
+                  readOnly: true
               env:
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
@@ -142,6 +148,8 @@ objects:
                   value: "/home/proxy/.ansible/collections"
                 - name: CLOUDSDK_CONFIG
                   value: "/home/proxy/gcloud"
+                - name: KRB5_CONFIG
+                  value: "/run/secrets/kerberos-conf/krb5.conf"
           volumes:
             - name: os-secret
               secret:
@@ -155,6 +163,14 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: crc-ps-file
+            - name: beaker-keytab-file
+              secret:
+                defaultMode: 420
+                secretName: beaker-keytab-file
+            - name: kerberos-conf
+              secret:
+                defaultMode: 420
+                secretName: kerberos-conf
           dnsPolicy: ClusterFirst
           restartPolicy: Always
       triggers:

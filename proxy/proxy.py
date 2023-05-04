@@ -40,6 +40,8 @@ while True:
                 cmd += ["-e", "cloud_profile=rhos-d"]
             if "gcp" in labels:
                 cmd += ["-e", "cloud_profile=gcp"]
+            if "beaker" in labels:
+                cmd += ["-e", "cloud_profile=beaker"]
 
             # set os
             suported_os = [
@@ -51,9 +53,11 @@ while True:
                 "rhel-8-6",
                 "rhel-8-7",
                 "rhel-8-8",
+                "rhel-8-9",
                 "rhel-9-0",
                 "rhel-9-1",
-                "rhel-9-2"
+                "rhel-9-2",
+                "rhel-9-3"
             ]
             for i in suported_os:
                 if i in labels:
@@ -66,10 +70,15 @@ while True:
                 cmd += ["-e", "flavor_type=large"]
             if "xlarge" in labels:
                 cmd += ["-e", "flavor_type=xlarge"]
+            # beaker does not have flavor
+            if "beaker" in labels:
+                cmd += ["-e", "flavor_type=beaker"]
 
             # set arch
             if "x86_64" in labels:
                 cmd += ["-e", "arch=x64"]
+            if "aarch64" in labels:
+                cmd += ["-e", "arch=aarch64"]
 
             # set repo_fullname
             cmd += ["-e", "repo_fullname="+payload["repository"]["full_name"]]
@@ -134,6 +143,17 @@ while True:
                             f"--project={os.environ['GCP_PROJECT']}"
                     ]
                     print(f"gcloud command: {cmd}")
+                    subprocess.Popen(cmd, stdin=slave_fd)
+
+                if "beaker" in labels:
+                    job_id = runner_name.split("-")[-1].replace("_", ":")
+                    # cancel beaker job
+                    cmd = [
+                            "bkr",
+                            "job-cancel",
+                            job_id
+                    ]
+                    print(f"beaker cancel job command: {cmd}")
                     subprocess.Popen(cmd, stdin=slave_fd)
 
                 print(f"Github runner - {runner_name} destroy starting")

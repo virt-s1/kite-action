@@ -4,3 +4,5 @@ vault.txt
 webhook.zip
 aws_policy/
 venv
+beaker-job.xml
+job-result-output.xml
