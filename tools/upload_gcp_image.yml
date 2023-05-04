@@ -10,9 +10,9 @@
     gcp_project: "{{ lookup('env', 'GCP_PROJECT') }}"
     os: "fedora-rawhide"
     image_url:
-      fedora-rawhide: https://download-cc-rdu01.fedoraproject.org/pub/fedora/linux/development/rawhide/Cloud/x86_64/images
-      fedora-38: https://download-cc-rdu01.fedoraproject.org/pub/fedora/linux/development/38/Cloud/x86_64/images
-      fedora-37: https://download-cc-rdu01.fedoraproject.org/pub/fedora/linux/releases/37/Cloud/x86_64/images
+      fedora-rawhide: https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/Cloud/x86_64/images
+      fedora-38: https://dl.fedoraproject.org/pub/fedora/linux/releases/38/Cloud/x86_64/images
+      fedora-37: https://dl.fedoraproject.org/pub/fedora/linux/releases/37/Cloud/x86_64/images
     # image name must be a match of regex '[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?|[1-9][0-9]{0,19}'
     gcp_image_name:
       fedora-rawhide:
