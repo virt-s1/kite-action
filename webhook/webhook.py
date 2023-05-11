@@ -14,7 +14,7 @@ GITHUB_APP_WEBHOOK_SECRET = os.environ['GITHUB_APP_WEBHOOK_SECRET']
 hmac_key = bytes(GITHUB_APP_WEBHOOK_SECRET, 'UTF-8')
 
 ALLOWED_REPOS = [
-    "virt-s1/osbuild-composer-ci"
+    "osbuild/rhel-edge-ci"
 ]
 
 def kite_webhook_handler(event, context):
