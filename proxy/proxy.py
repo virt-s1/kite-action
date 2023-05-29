@@ -65,6 +65,8 @@ while True:
             # set openstack flavor
             if "small" in labels:
                 cmd += ["-e", "flavor_type=small"]
+            if "medium" in labels:
+                cmd += ["-e", "flavor_type=medium"]
             if "large" in labels:
                 cmd += ["-e", "flavor_type=large"]
             if "xlarge" in labels:
