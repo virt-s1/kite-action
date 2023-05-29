@@ -1,0 +1,25 @@
+---
+name: Build kite-proxy container for composer ci
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kite-proxy-composer-container:
+    runs-on: container-runner
+    container:
+      image: quay.io/fedora/fedora:38-x86_64
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install podman and
+        run: sudo dnf install -y podman
+
+      - name: Build kite-proxy image and upload to quay.io
+        run: |
+          podman build -t "kite-proxy:${GITHUB_REF_NAME}" -f proxy/Dockerfile proxy
+          podman push --creds "${QUAY_USER}":"${QUAY_PASS}" "kite-proxy:${GITHUB_REF_NAME}" "quay.io/rhel-edge/kite-proxy:${GITHUB_REF_NAME}"
+        env:
+          QUAY_USER: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASS: ${{ secrets.QUAY_PASSWORD }}
