@@ -1,3 +1,4 @@
+---
 name: Upload action-runner package to S3 if it's new
 on:
   workflow_dispatch:

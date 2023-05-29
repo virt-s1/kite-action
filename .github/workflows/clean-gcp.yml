@@ -1,0 +1,58 @@
+---
+name: Clean GCP instances running over 4 hours
+on:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  clean-virt-qe:
+    # Do not run this job on any fork repos
+    if: github.repository == 'virt-s1/kite-action'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Clean GCP VMs running over 4 hours
+        run: |
+          echo $ANSIBLE_VAULT > ansible_vault
+          ansible-vault decrypt --vault-password-file ansible_vault --output gcp-sa-file.json tools/gcp-virt-qe
+          gcloud auth activate-service-account --key-file=gcp-sa-file.json
+          EARLY_TIME=$(date -d '-4 hour' '+%Y-%m-%dT%H:%M:%S')
+          gcloud compute instances list --project="$GCP_PROJECT" --format="json(name,creationTimestamp)" --filter="creationTimestamp<=${EARLY_TIME} and name ~ runner-"
+          VM_LIST=$(gcloud compute instances list --project="$GCP_PROJECT" --format="json(name,creationTimestamp)" --filter="creationTimestamp<=${EARLY_TIME} and name ~ runner-" | jq -r 'select(. | length > 0) | .[] | .name')
+          if [ ! -z "$VM_LIST" ]; then
+              for item in ${VM_LIST[*]}
+              do
+                  gcloud compute instances delete "$item" --zone=us-central1-a --quiet --delete-disks=all --project="$GCP_PROJECT"
+              done
+          fi
+        env:
+          ANSIBLE_VAULT: ${{ secrets.ANSIBLE_VAULT }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT_VIRT_QE }}
+
+  clean-edge-qe-dev:
+    # Do not run this job on any fork repos
+    if: github.repository == 'virt-s1/kite-action'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Clean GCP VMs running over 4 hours
+        run: |
+          echo $ANSIBLE_VAULT > ansible_vault
+          ansible-vault decrypt --vault-password-file ansible_vault --output gcp-sa-file.json tools/gcp-edge-qe-dev
+          gcloud auth activate-service-account --key-file=gcp-sa-file.json
+          EARLY_TIME=$(date -d '-4 hour' '+%Y-%m-%dT%H:%M:%S')
+          gcloud compute instances list --project="$GCP_PROJECT" --format="json(name,creationTimestamp)" --filter="creationTimestamp<=${EARLY_TIME} and name ~ runner-"
+          VM_LIST=$(gcloud compute instances list --project="$GCP_PROJECT" --format="json(name,creationTimestamp)" --filter="creationTimestamp<=${EARLY_TIME} and name ~ runner-" | jq -r 'select(. | length > 0) | .[] | .name')
+          if [ ! -z "$VM_LIST" ]; then
+              for item in ${VM_LIST[*]}
+              do
+                  gcloud compute instances delete "$item" --zone=us-central1-a --quiet --delete-disks=all --project="$GCP_PROJECT"
+              done
+          fi
+        env:
+          ANSIBLE_VAULT: ${{ secrets.ANSIBLE_VAULT }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT_EDGE_QE }}
