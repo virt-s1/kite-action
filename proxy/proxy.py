@@ -36,8 +36,8 @@ while True:
             # set cloud_profile
             if "rhos-01" in labels:
                 cmd += ["-e", "cloud_profile=rhos-01"]
-            if "rhos-d" in labels:
-                cmd += ["-e", "cloud_profile=rhos-d"]
+            if "rhos-0x" in labels:
+                cmd += ["-e", "cloud_profile=rhos-0x"]
             if "gcp" in labels:
                 cmd += ["-e", "cloud_profile=gcp"]
             if "beaker" in labels:
@@ -123,9 +123,9 @@ while True:
                     # run ansible playbook to delete instance
                     subprocess.Popen(cmd, stdin=slave_fd)
 
-                if "rhos-d" in labels:
+                if "rhos-0x" in labels:
                     # set cloud_profile
-                    cmd = ["ansible-playbook", "-e", "cloud_profile=rhos-d"]
+                    cmd = ["ansible-playbook", "-e", "cloud_profile=rhos-0x"]
 
                     # set runner name
                     cmd += ["-e", "instance_name="+runner_name]

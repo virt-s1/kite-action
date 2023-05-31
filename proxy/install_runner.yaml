@@ -6,17 +6,17 @@
     download_node: "{{ lookup('env', 'DOWNLOAD_NODE') }}"
     ansible_python_interpreter: /usr/bin/python3
     ansible_connection: local
-    cloud_profile: "rhos-d"
+    cloud_profile: "rhos-0x"
     os: "rhel-9-2"
     os_network:
       rhos-01: "shared_net_9"
-      rhos-d: "provider_net_shared_2"
+      rhos-0x: "shared_net_9"
     flavor:
       rhos-01:
         large: "ci.standard.large"
         small: "ci.standard.small"
         xlarge: "ci.standard.xl"
-      rhos-d:
+      rhos-0x:
         large: "ci.standard.large"
         small: "ci.standard.small"
         xlarge: "ci.standard.xl"
@@ -170,14 +170,6 @@
             instance_ip: "{{ instance_status_result_1.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'rhel' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_1 is succeeded
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_1.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'rhel' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_1 is succeeded
 
         - name: Deploy RHEL instance attempt 2
@@ -258,15 +250,6 @@
             instance_ip: "{{ instance_status_result_2.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'rhel' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_2 is succeeded
-            - instance_status_result_1 is failed
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_2.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'rhel' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_2 is succeeded
             - instance_status_result_1 is failed
 
@@ -351,16 +334,6 @@
             instance_ip: "{{ instance_status_result_3.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'rhel' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_3 is succeeded
-            - instance_status_result_1 is failed
-            - instance_status_result_2 is failed
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_3.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'rhel' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_3 is succeeded
             - instance_status_result_1 is failed
             - instance_status_result_2 is failed
@@ -428,14 +401,6 @@
             instance_ip: "{{ instance_status_result_1.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'fedora' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_1 is succeeded
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_1.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'fedora' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_1 is succeeded
 
         - name: Deploy Fedora instance attempt 2
@@ -497,15 +462,6 @@
             instance_ip: "{{ instance_status_result_2.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'fedora' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_2 is succeeded
-            - instance_status_result_1 is failed
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_2.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'fedora' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_2 is succeeded
             - instance_status_result_1 is failed
 
@@ -571,16 +527,6 @@
             instance_ip: "{{ instance_status_result_3.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'fedora' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_3 is succeeded
-            - instance_status_result_1 is failed
-            - instance_status_result_2 is failed
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_3.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'fedora' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_3 is succeeded
             - instance_status_result_1 is failed
             - instance_status_result_2 is failed
@@ -648,14 +594,6 @@
             instance_ip: "{{ instance_status_result_1.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'centos' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_1 is succeeded
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_1.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'centos' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_1 is succeeded
 
         - name: Deploy CS instance attempt 2
@@ -717,15 +655,6 @@
             instance_ip: "{{ instance_status_result_2.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'centos' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_2 is succeeded
-            - instance_status_result_1 is failed
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_2.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'centos' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_2 is succeeded
             - instance_status_result_1 is failed
 
@@ -791,16 +720,6 @@
             instance_ip: "{{ instance_status_result_3.servers[0].addresses.shared_net_9[0].addr }}"
           when:
             - "'centos' in os"
-            - cloud_profile == "rhos-01"
-            - instance_status_result_3 is succeeded
-            - instance_status_result_1 is failed
-            - instance_status_result_2 is failed
-
-        - set_fact:
-            instance_ip: "{{ instance_status_result_3.servers[0].addresses.provider_net_shared_2[0].addr }}"
-          when:
-            - "'centos' in os"
-            - cloud_profile == "rhos-d"
             - instance_status_result_3 is succeeded
             - instance_status_result_1 is failed
             - instance_status_result_2 is failed
@@ -814,7 +733,7 @@
             - instance_status_result_2 is failed
             - instance_status_result_3 is failed
 
-      when: cloud_profile == "rhos-01" or cloud_profile == "rhos-d"
+      when: cloud_profile == "rhos-01" or cloud_profile == "rhos-0x"
 
     - name: Deploy runner on Google Cloud
       block:
@@ -1007,7 +926,7 @@
       register: cloud_init_check
       changed_when: false
       until: cloud_init_check is success
-      when: cloud_profile == "rhos-01" or cloud_profile == "rhos-d"
+      when: cloud_profile == "rhos-01" or cloud_profile == "rhos-0x"
 
     - name: Wait 10 seconds for gcp instance user, key and startup script finished
       wait_for:
