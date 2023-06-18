@@ -6,7 +6,7 @@ on:
     - cron: '0 */8 * * *'
 
 jobs:
-  clean-rhos-01:
+  clean-rhos:
     # Do not run this job on any fork repos
     if: github.repository == 'virt-s1/kite-action'
     runs-on: container-runner
@@ -20,7 +20,7 @@ jobs:
           sudo update-ca-trust extract
 
       # Get required authentication env variables from openrc.sh exported from openstack UI
-      - name: Clean Openstack VMs running over 8 hours
+      - name: 3rd - Clean Openstack VMs running over 8 hours
         run: |
           EARLY_TIME=$(date -u -d '-8 hour' +"%Y-%m-%dT%H:%M:%SZ")
           openstack server list --name "^runner-*" --changes-before "$EARLY_TIME" --no-name-lookup --format json --os-compute-api-version 2.66
@@ -40,3 +40,24 @@ jobs:
           OS_USER_DOMAIN_NAME: ${{ secrets.OS_USER_DOMAIN_NAME_RHOS_01 }}
           OS_PROJECT_DOMAIN_ID: ${{ secrets.OS_PROJECT_DOMAIN_ID_RHOS_01 }}
           OS_IDENTITY_API_VERSION: ${{ secrets.OS_IDENTITY_API_VERSION_RHOS_01 }}
+
+      - name: RHEL-Edge - Clean Openstack VMs running over 8 hours
+        run: |
+          EARLY_TIME=$(date -u -d '-8 hour' +"%Y-%m-%dT%H:%M:%SZ")
+          openstack server list --name "^runner-*" --changes-before "$EARLY_TIME" --no-name-lookup --format json --os-compute-api-version 2.66
+          VM_LIST=$(openstack server list --name "^runner-*" --status ACTIVE --changes-before "$EARLY_TIME" --no-name-lookup --format json --column Name --os-compute-api-version 2.66 | jq -r 'select(. | length > 0) | .[] | .Name')
+          if [ ! -z "$VM_LIST" ]; then
+              for item in ${VM_LIST[*]}
+              do
+                  openstack server delete "$item" --force --wait
+              done
+          fi
+        env:
+          OS_USERNAME: ${{ secrets.OS_USERNAME_RHOS_0x }}
+          OS_PASSWORD: ${{ secrets.OS_PASSWORD_RHOS_0x }}
+          OS_PROJECT_NAME: ${{ secrets.OS_PROJECT_NAME_RHOS_0x }}
+          OS_AUTH_URL: ${{ secrets.OS_AUTH_URL_RHOS_0x }}
+          OS_REGION_NAME: ${{ secrets.OS_REGION_NAME_RHOS_0x }}
+          OS_USER_DOMAIN_NAME: ${{ secrets.OS_USER_DOMAIN_NAME_RHOS_0x }}
+          OS_PROJECT_DOMAIN_ID: ${{ secrets.OS_PROJECT_DOMAIN_ID_RHOS_0x }}
+          OS_IDENTITY_API_VERSION: ${{ secrets.OS_IDENTITY_API_VERSION_RHOS_0x }}
