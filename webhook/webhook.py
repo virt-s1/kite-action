@@ -16,7 +16,9 @@ hmac_key = bytes(GITHUB_APP_WEBHOOK_SECRET, 'UTF-8')
 ALLOWED_REPOS = [
     "virt-s1/kite-demo",
     "virt-s1/rhel-edge",
-    "coreos/coreos-installer-dracut"
+    "coreos/coreos-installer-dracut",
+    "fedora-iot/fido-device-onboard-rs",
+    "fedora-iot/greenboot"
 ]
 
 def kite_webhook_handler(event, context):
