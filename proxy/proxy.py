@@ -65,6 +65,8 @@ while True:
             # set openstack flavor
             if "small" in labels:
                 cmd += ["-e", "flavor_type=small"]
+            if "medium" in labels:
+                cmd += ["-e", "flavor_type=medium"]
             if "large" in labels:
                 cmd += ["-e", "flavor_type=large"]
             if "xlarge" in labels:
@@ -90,6 +92,11 @@ while True:
             cmd += ["install_runner.yaml"]
 
             print(f"ansible command: {cmd}")
+
+            # To avoid random IO error when deploy too much runner at the same time
+            # sleep 10 seconds here
+            time.sleep(10)
+
             # run ansible playbook
             subprocess.Popen(cmd, stdin=slave_fd)
             print(f"Github runner - {label_str} deploy starting")
