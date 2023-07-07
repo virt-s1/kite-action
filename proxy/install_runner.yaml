@@ -11,6 +11,7 @@
     flavor:
       rhos-01:
         large: "ci.standard.large"
+        medium: "ci.standard.medium"
         small: "ci.standard.small"
       gcp:
         medium: "n2-standard-2"
@@ -75,6 +76,19 @@
       fedora-36: kite-image-fedora-36
       fedora-37: kite-image-fedora-37
       fedora-38: kite-image-fedora-38
+    beaker_family:
+      rhel-9-3: RedHatEnterpriseLinux9
+      centos-stream-9: CentOSStream9
+      fedora-37: Fedora37
+      fedora-38: Fedora38
+      fedora-rawhide: Fedorarawhide
+    beaker_compose:
+      # avoid rhel-9.3.0-updates-2023xxxx.xx
+      rhel-9-3: rhel-9.3.0-20
+      centos-stream-9: CentOS-Stream-9
+      fedora-37: Fedora-37
+      fedora-38: Fedora-38
+      fedora-rawhide: Fedora-Rawhide
 
   tasks:
     - set_fact:
@@ -752,6 +766,18 @@
 
     - name: Deploy runner on beaker
       block:
+        - name: "get latest {{ beaker_family[os] }} distro"
+          command: bkr distros-list --family {{ beaker_family[os] }} --name {{ beaker_compose[os] }}% --limit 1 --format json
+          register: distro_result
+
+        - name: json format
+          set_fact:
+            tmp_result: "{{ distro_result.stdout | from_json }}"
+
+        - name: set latest distro name
+          set_fact:
+            distro_name: "{{ tmp_result[0].distro_name }}"
+
         - name: generate job xml
           template:
             src: beaker-job.j2
@@ -875,7 +901,7 @@
         - set_fact:
             instance_name: "runner-{{ cloud_profile }}-{{ os }}-{{ job_id | replace(':', '_')}}"
 
-      when: cloud_profile == "beaker"
+      when: cloud_profile == "beaker" or cloud_profile == "beaker-vm"
 
     - name: Waits until instance is reachable
       wait_for:
