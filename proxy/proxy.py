@@ -40,6 +40,8 @@ while True:
                 cmd += ["-e", "cloud_profile=gcp"]
             if "beaker" in labels:
                 cmd += ["-e", "cloud_profile=beaker"]
+            if "beaker-vm" in labels:
+                cmd += ["-e", "cloud_profile=beaker-vm"]
 
             # set os
             suported_os = [
@@ -74,10 +76,12 @@ while True:
             # beaker does not have flavor
             if "beaker" in labels:
                 cmd += ["-e", "flavor_type=beaker"]
+            if "beaker-vm" in labels:
+                cmd += ["-e", "flavor_type=beaker-vm"]
 
             # set arch
             if "x86_64" in labels:
-                cmd += ["-e", "arch=x64"]
+                cmd += ["-e", "arch=x86_64"]
             if "aarch64" in labels:
                 cmd += ["-e", "arch=aarch64"]
 
@@ -137,7 +141,7 @@ while True:
                     print(f"gcloud command: {cmd}")
                     subprocess.Popen(cmd, stdin=slave_fd)
 
-                if "beaker" in labels:
+                if "beaker" in labels or "beaker-vm" in labels:
                     job_id = runner_name.split("-")[-1].replace("_", ":")
                     # cancel beaker job
                     cmd = [
