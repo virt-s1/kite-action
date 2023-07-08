@@ -12,14 +12,16 @@ jobs:
       options: --privileged
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: composer_ci
 
-      - name: Install podman and
+      - name: Install podman
         run: sudo dnf install -y podman
 
       - name: Build kite-proxy image and upload to quay.io
         run: |
-          podman build -t "kite-proxy:${GITHUB_REF_NAME}" -f proxy/Dockerfile proxy
-          podman push --creds "${QUAY_USER}":"${QUAY_PASS}" "kite-proxy:${GITHUB_REF_NAME}" "quay.io/rhel-edge/kite-proxy:${GITHUB_REF_NAME}"
+          podman build -t "kite-proxy:composer_ci" -f proxy/Dockerfile proxy
+          podman push --creds "${QUAY_USER}":"${QUAY_PASS}" "kite-proxy:composer_ci" "quay.io/rhel-edge/kite-proxy:composer_ci"
         env:
           QUAY_USER: ${{ secrets.QUAY_USERNAME }}
           QUAY_PASS: ${{ secrets.QUAY_PASSWORD }}

@@ -1,0 +1,27 @@
+---
+name: Build kite-proxy container for dev ci
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kite-proxy-dev-container:
+    runs-on: container-runner
+    container:
+      image: quay.io/fedora/fedora:38-x86_64
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: dev
+
+      - name: Install podman
+        run: sudo dnf install -y podman
+
+      - name: Build kite-proxy image and upload to quay.io
+        run: |
+          podman build -t "kite-proxy:dev" -f proxy/Dockerfile proxy
+          podman push --creds "${QUAY_USER}":"${QUAY_PASS}" "kite-proxy:dev" "quay.io/rhel-edge/kite-proxy:dev"
+        env:
+          QUAY_USER: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASS: ${{ secrets.QUAY_PASSWORD }}
