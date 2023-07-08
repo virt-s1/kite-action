@@ -8,6 +8,7 @@ source /etc/os-release
 if [[ "$ID" == "fedora" ]]; then
     growpart /dev/sda 5
     btrfs filesystem resize 1:+70G /
+    dnf install -y python3 python3-dnf
 fi
 
 # Enable CRB repo or powertools repo on Centos Stream 9 or 8
