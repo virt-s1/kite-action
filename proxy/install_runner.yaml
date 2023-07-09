@@ -52,7 +52,7 @@
         crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
-      centos-stream-9: edge-centos-stream-9
+      centos-stream-9: CentOS-Stream-9-latest
       rhel-8-6: RHEL-8.6.0-x86_64-ga-latest
       rhel-8-7: RHEL-8.7.0-x86_64-ga-latest
       rhel-8-8: RHEL-8.8.0-x86_64-nightly-latest
@@ -64,7 +64,7 @@
       fedora-36: edge-fedora-36
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
-      fedora-rawhide: edge-fedora-rawhide
+      fedora-rawhide: Fedora-Cloud-Base-rawhide-latest
     image_family:
       centos-stream-8: centos-stream-8
       centos-stream-9: centos-stream-9
