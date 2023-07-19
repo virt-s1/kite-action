@@ -29,7 +29,7 @@ objects:
           containers:
             - name: ${KITE_PROXY_NAME}
               image: ${KITE_PROXY_IMAGE}
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               resources:
                 limits:
                   memory: "2Gi"
