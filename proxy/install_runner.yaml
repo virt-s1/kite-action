@@ -13,12 +13,14 @@
       rhos-0x: "shared_net_9"
     flavor:
       rhos-01:
-        large: "ci.standard.large"
         small: "ci.standard.small"
+        medium: "ci.standard.medium"
+        large: "ci.standard.large"
         xlarge: "ci.standard.xl"
       rhos-0x:
-        large: "ci.standard.large"
         small: "ci.standard.small"
+        medium: "ci.standard.medium"
+        large: "ci.standard.large"
         xlarge: "ci.standard.xl"
       gcp:
         medium: "n2-standard-2"
@@ -59,7 +61,7 @@
         crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
-      centos-stream-9: edge-centos-stream-9
+      centos-stream-9: CentOS-Stream-9-latest
       rhel-8-6: RHEL-8.6.0-x86_64-ga-latest
       rhel-8-7: RHEL-8.7.0-x86_64-ga-latest
       rhel-8-8: RHEL-8.8.0-x86_64-nightly-latest
@@ -70,7 +72,7 @@
       rhel-9-3: RHEL-9.3.0-x86_64-nightly-latest
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
-      fedora-rawhide: edge-fedora-rawhide
+      fedora-rawhide: Fedora-Cloud-Base-rawhide-latest
     image_family:
       centos-stream-8: centos-stream-8
       centos-stream-9: centos-stream-9
@@ -81,6 +83,19 @@
       fedora-rawhide: kite-image-fedora-rawhide
       fedora-37: kite-image-fedora-37
       fedora-38: kite-image-fedora-38
+    beaker_family:
+      rhel-9-3: RedHatEnterpriseLinux9
+      centos-stream-9: CentOSStream9
+      fedora-37: Fedora37
+      fedora-38: Fedora38
+      fedora-rawhide: Fedorarawhide
+    beaker_compose:
+      # avoid rhel-9.3.0-updates-2023xxxx.xx
+      rhel-9-3: rhel-9.3.0-20
+      centos-stream-9: CentOS-Stream-9
+      fedora-37: Fedora-37
+      fedora-38: Fedora-38
+      fedora-rawhide: Fedora-Rawhide
 
   tasks:
     - set_fact:
@@ -759,6 +774,18 @@
 
     - name: Deploy runner on beaker
       block:
+        - name: "get latest {{ beaker_family[os] }} distro"
+          command: bkr distros-list --family {{ beaker_family[os] }} --name {{ beaker_compose[os] }}% --limit 1 --format json
+          register: distro_result
+
+        - name: json format
+          set_fact:
+            tmp_result: "{{ distro_result.stdout | from_json }}"
+
+        - name: set latest distro name
+          set_fact:
+            distro_name: "{{ tmp_result[0].distro_name }}"
+
         - name: generate job xml
           template:
             src: beaker-job.j2
@@ -882,7 +909,7 @@
         - set_fact:
             instance_name: "runner-{{ cloud_profile }}-{{ os }}-{{ job_id | replace(':', '_')}}"
 
-      when: cloud_profile == "beaker"
+      when: cloud_profile == "beaker" or cloud_profile == "beaker-vm"
 
     - name: Waits until instance is reachable
       wait_for:
@@ -961,6 +988,7 @@
       become: yes
       when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2") or (os == "rhel-9-3")
 
+    # "update_cache: yes" not supported in new package module
     - name: Install dependencies on RHEL/CentOS/Fedora systems
       package:
         name:
@@ -973,7 +1001,6 @@
           - tar
           - unzip
         state: present
-        update_cache: yes
       become: yes
 
     - name: Create directory

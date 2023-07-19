@@ -17,16 +17,22 @@ echo -e 'admin\tALL=(ALL)\tNOPASSWD: ALL' >> /etc/sudoers
       <repos/>
       <distroRequires>
         <and>
-          <distro_name op="=" value="Fedora-37"/>
+          <distro_name op="=" value="{{ distro_name }}"/>
           <distro_arch op="=" value="{{ arch }}"/>
         </and>
       </distroRequires>
       <hostRequires>
         <and>
-          <hypervisor op="=" value=""/>
           <arch op="=" value="{{ arch }}"/>
+{% if cloud_profile == "beaker" %}
+          <hypervisor op="=" value=""/>
           <cpu_count op=">=" value="16"/>
           <memory op=">=" value="48000"/>
+{% endif %}
+{% if cloud_profile == "beaker-vm" %}
+          <cpu_count op=">=" value="4"/>
+          <memory op=">=" value="4096"/>
+{% endif %}
         </and>
       </hostRequires>
       <partitions/>

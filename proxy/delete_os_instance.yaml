@@ -5,7 +5,7 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     ansible_connection: local
-    cloud_profile: "rhos-d"
+    cloud_profile: "rhos-0x"
 
   tasks:
     - name: Delete instance
