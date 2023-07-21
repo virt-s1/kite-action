@@ -26,6 +26,7 @@
       fedora-rawhide: fedora
     os_network:
       rhos-01: "shared_net_9"
+      rhos-0x: "shared_net_9"
       rhos-d: "provider_net_shared_2"
 
   tasks:
@@ -122,7 +123,7 @@
 
         - set_fact:
             instance_ip_addr: "{{ instance_result.server.addresses.shared_net_9[0].addr }}"
-          when: cloud_profile == "rhos-01"
+          when: cloud_profile == "rhos-01" or cloud_profile == "rhos-0x"
 
         - set_fact:
             instance_ip_addr: "{{ instance_result.server.addresses.provider_net_shared_2[0].addr }}"
