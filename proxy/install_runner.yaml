@@ -61,7 +61,7 @@
         crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
-      centos-stream-9: CentOS-Stream-9-latest
+      centos-stream-9: edge-centos-stream-9
       rhel-8-6: RHEL-8.6.0-x86_64-ga-latest
       rhel-8-7: RHEL-8.7.0-x86_64-ga-latest
       rhel-8-8: RHEL-8.8.0-x86_64-nightly-latest
@@ -72,7 +72,7 @@
       rhel-9-3: RHEL-9.3.0-x86_64-nightly-latest
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
-      fedora-rawhide: Fedora-Cloud-Base-rawhide-latest
+      fedora-rawhide: edge-fedora-rawhide
     image_family:
       centos-stream-8: centos-stream-8
       centos-stream-9: centos-stream-9
@@ -775,12 +775,24 @@
     - name: Deploy runner on beaker
       block:
         - name: "get latest {{ beaker_family[os] }} distro"
-          command: bkr distros-list --family {{ beaker_family[os] }} --name {{ beaker_compose[os] }}% --limit 1 --format json
-          register: distro_result
+          command: bkr distros-list --family {{ beaker_family[os] }} --name {{ beaker_compose[os] }}% --tag CTS_NIGHTLY --limit 1 --format json
+          register: distro_result_rhel
+          when: "'rhel' in os"
 
-        - name: json format
+        - name: "get latest {{ beaker_family[os] }} distro"
+          command: bkr distros-list --family {{ beaker_family[os] }} --name {{ beaker_compose[os] }}% --limit 1 --format json
+          register: distro_result_other
+          when: "'rhel' not in os"
+
+        - name: json format for rhel
           set_fact:
-            tmp_result: "{{ distro_result.stdout | from_json }}"
+            tmp_result: "{{ distro_result_rhel.stdout | from_json }}"
+          when: "'rhel' in os"
+
+        - name: json format for other
+          set_fact:
+            tmp_result: "{{ distro_result_other.stdout | from_json }}"
+          when: "'rhel' not in os"
 
         - name: set latest distro name
           set_fact:
