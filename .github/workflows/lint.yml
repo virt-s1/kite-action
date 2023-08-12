@@ -1,0 +1,43 @@
+---
+name: Lint
+
+on:
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  commitlint:
+    name: "📇 commitlint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: wagoid/commitlint-github-action@v5
+
+  spellcheck:
+    name: "📋 spellcheck"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: codespell-project/actions-codespell@v1
+        with:
+          check_filenames: true
+          ignore_words_list: bu
+
+  shellcheck:
+    name: "🔭 Shellcheck"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: -e SC1091 -e SC2002 -e SC2317
+
+  yamllint:
+    name: "🔬 yamlint"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint.yml
