@@ -76,7 +76,7 @@
         groups: guest
         runner_name: "{{ instance_name }}"
 
-    - name: set private key permisson to 600
+    - name: set private key permission to 600
       file:
         path: key/ostree_key
         mode: "0600"
