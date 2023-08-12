@@ -64,6 +64,7 @@
       fedora-36: edge-fedora-36
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
+      fedora-39: edge-fedora-39
       fedora-rawhide: edge-fedora-rawhide
     image_family:
       centos-stream-8: centos-stream-8
@@ -72,15 +73,17 @@
       centos-stream-8: centos-cloud
       centos-stream-9: centos-cloud
     gcp_images:
-      fedora-rawhide: kite-image-fedora-rawhide
       fedora-36: kite-image-fedora-36
       fedora-37: kite-image-fedora-37
       fedora-38: kite-image-fedora-38
+      fedora-39: kite-image-fedora-39
+      fedora-rawhide: kite-image-fedora-rawhide
     beaker_family:
       rhel-9-3: RedHatEnterpriseLinux9
       centos-stream-9: CentOSStream9
       fedora-37: Fedora37
       fedora-38: Fedora38
+      fedora-39: Fedora39
       fedora-rawhide: Fedorarawhide
     beaker_compose:
       # avoid rhel-9.3.0-updates-2023xxxx.xx
@@ -88,6 +91,7 @@
       centos-stream-9: CentOS-Stream-9
       fedora-37: Fedora-37
       fedora-38: Fedora-38
+      fedora-39: Fedora-39
       fedora-rawhide: Fedora-Rawhide
 
   tasks:
