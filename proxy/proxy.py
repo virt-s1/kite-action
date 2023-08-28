@@ -48,6 +48,8 @@ while True:
                 "fedora-36",
                 "fedora-37",
                 "fedora-38",
+                "fedora-39",
+                "fedora-40",
                 "fedora-rawhide",
                 "centos-stream-8",
                 "centos-stream-9",
