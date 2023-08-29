@@ -106,7 +106,7 @@ objects:
                 - name: OS_CLIENT_CONFIG_FILE
                   value: "/run/secrets/os-secret/clouds.yaml"
                 - name: GCP_SERVICE_ACCOUNT_FILE
-                  value: "/run/secrets/gcp-sa-file/gcp_service_account.json"
+                  value: "/run/secrets/gcp-sa-file/virt-qe-26871f550018.json"
                 - name: ANSIBLE_LOCAL_TEMP
                   value: "/home/proxy/.ansible/tmp"
                 - name: ANSIBLE_HOME
