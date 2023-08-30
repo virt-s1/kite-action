@@ -991,12 +991,6 @@
       register: registration
       delegate_to: localhost
 
-    - name: Copy CRC pull secret file
-      copy:
-        src: /run/secrets/crc-ps-file/crc-pull-secret
-        dest: "{{ lookup('env', 'PULL_SECRET_FILE') }}"
-      when: cloud_profile == "gcp"
-
     - name: Enable SHA1 as default crypto prolicy for CS9 and RHEL9
       command: update-crypto-policies --set DEFAULT:SHA1
       become: yes
@@ -1007,6 +1001,7 @@
       package:
         name:
           - acl
+          - git
           - lttng-ust
           - openssl-libs
           - krb5-libs
