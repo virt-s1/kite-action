@@ -5,7 +5,7 @@ LABEL name="kite-proxy-edge" \
       maintainer="xiaofwan@redhat.com" \
       vendor="Red Hat QE Section 1" \
       version="2" \
-      release="1" \
+      release="2" \
       summary="kite proxy server" \
       description="A proxy server to fetch AWS SQS message repeatly" \
       io.k8s.description="A proxy server to fetch AWS SQS message repeatly" \
@@ -16,7 +16,7 @@ ENV PROXY_ROOT=/home/proxy
 
 USER root
 
-ADD https://password.corp.redhat.com/RH-IT-Root-CA.crt \
+ADD https://certs.corp.redhat.com/certs/Current-IT-Root-CAs.pem \
     /etc/pki/ca-trust/source/anchors/
 RUN update-ca-trust extract
 
