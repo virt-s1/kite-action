@@ -942,7 +942,7 @@
     #     mode: "0600"
 
 - hosts: guest
-  gather_facts: no
+  gather_facts: yes
   become: no
   vars:
     arch_short: "x64"
@@ -1020,6 +1020,11 @@
         owner: "{{ runner_user }}"
       become: yes
 
+    - name: Set runner_version variable
+      set_fact:
+        runner_version: "2.309.0"
+      when: ansible_facts['distribution'] == 'Fedora'
+
     - name: Find the latest runner version
       uri:
         url: "https://api.github.com/repos/{{ runner_download_repository }}/releases/latest"
@@ -1032,10 +1037,14 @@
         body_format: json
       register: api_response
       delegate_to: localhost
+      when: ansible_facts['distribution'] != 'Fedora'
 
     - name: Set runner_version variable
       set_fact:
         runner_version: "{{ api_response.json.tag_name | regex_replace('^v', '') }}"
+      when: ansible_facts['distribution'] != 'Fedora'
+
+    - debug: var=runner_version
 
     - name: Create temporary directory for archive
       tempfile:
