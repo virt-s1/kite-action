@@ -46,8 +46,7 @@ RUN dnf -y update && \
     ansible-galaxy collection install -p ${PROXY_ROOT}/.ansible/collections openstack.cloud community.general && \
     chmod -R g=u ${PROXY_ROOT} /.ansible /etc/passwd /etc/group && \
     chgrp -R 0 ${PROXY_ROOT} && \
-    chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh,startup-script.sh} && \
-    chmod 600 /home/proxy/key/ostree_key
+    chmod 755 ${PROXY_ROOT}/{proxy.py,entrypoint.sh,startup-script.sh}
 
 COPY client.conf /etc/beaker/
 
