@@ -49,6 +49,7 @@ while True:
             suported_os = [
                 "fedora-37",
                 "fedora-38",
+                "fedora-39",
                 "fedora-rawhide",
                 "centos-stream-8",
                 "centos-stream-9",
@@ -56,10 +57,12 @@ while True:
                 "rhel-8-7",
                 "rhel-8-8",
                 "rhel-8-9",
+                "rhel-8-10",
                 "rhel-9-0",
                 "rhel-9-1",
                 "rhel-9-2",
-                "rhel-9-3"
+                "rhel-9-3",
+                "rhel-9-4"
             ]
             for i in suported_os:
                 if i in labels:

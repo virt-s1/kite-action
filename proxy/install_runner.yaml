@@ -40,9 +40,13 @@
         appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.8.0/compose/AppStream/x86_64/os/"
         crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.8.0/compose/CRB/x86_64/os/"
       rhel-8-9:
-        baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/BaseOS/x86_64/os/"
-        appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/AppStream/x86_64/os/"
-        crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.9.0/compose/CRB/x86_64/os/"
+        baseos: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.9.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.9.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/updates/RHEL-8/latest-RHEL-8.9.0/compose/CRB/x86_64/os/"
+      rhel-8-10:
+        baseos: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.10.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.10.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-8/nightly/RHEL-8/latest-RHEL-8.10.0/compose/CRB/x86_64/os/"
       rhel-9-0:
         baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/BaseOS/x86_64/os/"
         appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.0.0/compose/AppStream/x86_64/os/"
@@ -56,9 +60,13 @@
         appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.2.0/compose/AppStream/x86_64/os/"
         crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.2.0/compose/CRB/x86_64/os/"
       rhel-9-3:
-        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/BaseOS/x86_64/os/"
-        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/AppStream/x86_64/os/"
-        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
+        baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.3.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.3.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
+      rhel-9-4:
+        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.4.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.4.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.4.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
       centos-stream-9: edge-centos-stream-9
@@ -66,12 +74,15 @@
       rhel-8-7: RHEL-8.7.0-x86_64-ga-latest
       rhel-8-8: RHEL-8.8.0-x86_64-nightly-latest
       rhel-8-9: RHEL-8.9.0-x86_64-nightly-latest
+      rhel-8-10: RHEL-8.10.0-x86_64-nightly-latest
       rhel-9-0: RHEL-9.0.0-x86_64-ga-latest
       rhel-9-1: RHEL-9.1.0-x86_64-ga-latest
       rhel-9-2: RHEL-9.2.0-x86_64-nightly-latest
       rhel-9-3: RHEL-9.3.0-x86_64-nightly-latest
+      rhel-9-4: RHEL-9.4.0-x86_64-nightly-latest
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
+      fedora-39: edge-fedora-39
       fedora-rawhide: edge-fedora-rawhide
     image_family:
       centos-stream-8: centos-stream-8
@@ -80,21 +91,26 @@
       centos-stream-8: centos-cloud
       centos-stream-9: centos-cloud
     gcp_images:
-      fedora-rawhide: kite-image-fedora-rawhide
       fedora-37: kite-image-fedora-37
       fedora-38: kite-image-fedora-38
+      fedora-39: kite-image-fedora-39
+      fedora-rawhide: kite-image-fedora-rawhide
     beaker_family:
       rhel-9-3: RedHatEnterpriseLinux9
+      rhel-9-4: RedHatEnterpriseLinux9
       centos-stream-9: CentOSStream9
       fedora-37: Fedora37
       fedora-38: Fedora38
+      fedora-39: Fedora39
       fedora-rawhide: Fedorarawhide
     beaker_compose:
       # avoid rhel-9.3.0-updates-2023xxxx.xx
       rhel-9-3: rhel-9.3.0-20
+      rhel-9-4: rhel-9.4.0-20
       centos-stream-9: CentOS-Stream-9
       fedora-37: Fedora-37
       fedora-38: Fedora-38
+      fedora-39: Fedora-39
       fedora-rawhide: Fedora-Rawhide
 
   tasks:
@@ -998,7 +1014,7 @@
     - name: Enable SHA1 as default crypto prolicy for CS9 and RHEL9
       command: update-crypto-policies --set DEFAULT:SHA1
       become: yes
-      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2") or (os == "rhel-9-3")
+      when: (os == "centos-stream-9") or (os == "rhel-9-0") or (os == "rhel-9-1") or (os == "rhel-9-2") or (os == "rhel-9-3") or (os == "rhel-9-4")
 
     # "update_cache: yes" not supported in new package module
     - name: Install dependencies on RHEL/CentOS/Fedora systems
