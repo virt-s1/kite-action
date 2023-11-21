@@ -1034,7 +1034,7 @@
 
     - name: Set runner_version variable
       set_fact:
-        runner_version: "2.309.0"
+        runner_version: "2.311.0"
 
     - debug: var=runner_version
 
