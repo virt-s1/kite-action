@@ -8,6 +8,7 @@
     cloud_profile: "rhos-01"
     image_url:
       fedora-rawhide: https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/Cloud/x86_64/images
+      fedora-eln: https://odcs.fedoraproject.org/composes/production/latest-Fedora-ELN/compose/BaseOS/x86_64/images
       fedora-39: https://dl.fedoraproject.org/pub/fedora/linux/development/39/Cloud/x86_64/images
       fedora-38: https://dl.fedoraproject.org/pub/fedora/linux/releases/38/Cloud/x86_64/images
       fedora-37: https://dl.fedoraproject.org/pub/fedora/linux/releases/37/Cloud/x86_64/images
@@ -20,6 +21,7 @@
       fedora-38: edge-fedora-38
       fedora-39: edge-fedora-39
       fedora-rawhide: edge-fedora-rawhide
+      fedora-eln: edge-fedora-eln
     os_distro:
       centos-stream-9: centos
       centos-stream-8: centos
@@ -46,6 +48,15 @@
       shell: curl -s {{ image_url[os] }}/ | grep -ioE ">CentOS-Stream-GenericCloud-8-.*.qcow2<" | tr -d '><' | tail -1
       register: result_file
       when: os == "centos-stream-8"
+
+    - set_fact:
+        image_name: "{{ result_file.stdout }}"
+      when: result_file.changed
+
+    - name: get latest Fedora rawhide eln
+      shell: curl -s {{ image_url[os] }}/ | grep -ioE '>Fedora-ELN-Guest-.*.x86_64.qcow2<' | tr -d '><'
+      register: result_file
+      when: os == "fedora-eln"
 
     - set_fact:
         image_name: "{{ result_file.stdout }}"
