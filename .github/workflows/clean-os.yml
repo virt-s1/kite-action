@@ -16,8 +16,10 @@ jobs:
       - name: Prepare openstack client environment
         run: |
           sudo dnf install -y python-openstackclient jq
-          sudo curl -sS -o /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt https://password.corp.redhat.com/RH-IT-Root-CA.crt
+          sudo curl -kLO ${CERT_URL}/certs/Current-IT-Root-CAs.pem --output-dir /etc/pki/ca-trust/source/anchors
           sudo update-ca-trust extract
+        env:
+          CERT_URL: ${{ secrets.CERT_URL }}
 
       # Get required authentication env variables from openrc.sh exported from openstack UI
       - name: 3rd - Clean Openstack VMs running over 8 hours
