@@ -10,12 +10,14 @@
     os: "fedora-rawhide"
     image_url:
       fedora-rawhide: https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/Cloud/x86_64/images
-      fedora-39: https://dl.fedoraproject.org/pub/fedora/linux/development/39/Cloud/x86_64/images
+      fedora-40: https://dl.fedoraproject.org/pub/fedora/linux/development/40/Cloud/x86_64/images
+      fedora-39: https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Cloud/x86_64/images
       fedora-38: https://dl.fedoraproject.org/pub/fedora/linux/releases/38/Cloud/x86_64/images
       fedora-37: https://dl.fedoraproject.org/pub/fedora/linux/releases/37/Cloud/x86_64/images
     # image name must be a match of regex '[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?|[1-9][0-9]{0,19}'
     gcp_image_name:
       fedora-rawhide: "kite-image-fedora-rawhide"
+      fedora-40: "kite-image-fedora-40"
       fedora-39: "kite-image-fedora-39"
       fedora-38: "kite-image-fedora-38"
       fedora-37: "kite-image-fedora-37"
@@ -30,6 +32,17 @@
         image_file_name: "{{ result_file.stdout }}"
       when:
         - os == "fedora-rawhide"
+        - result_file.changed
+
+    - name: get latest Fedora 40 images
+      shell: curl -s {{ image_url[os] }}/ | grep -ioE '>Fedora-Cloud-Base-GCP-40-.*.x86_64.tar.gz<' | tr -d '><'
+      register: result_file
+      when: os == "fedora-40"
+
+    - set_fact:
+        image_file_name: "{{ result_file.stdout }}"
+      when:
+        - os == "fedora-40"
         - result_file.changed
 
     - name: get latest Fedora 39 images
