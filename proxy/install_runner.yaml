@@ -75,6 +75,7 @@
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
       fedora-39: edge-fedora-39
+      fedora-40: edge-fedora-40
       fedora-rawhide: edge-fedora-rawhide
     image_family:
       centos-stream-8: centos-stream-8
@@ -87,6 +88,7 @@
       fedora-37: kite-image-fedora-37
       fedora-38: kite-image-fedora-38
       fedora-39: kite-image-fedora-39
+      fedora-40: kite-image-fedora-40
       fedora-rawhide: kite-image-fedora-rawhide
     beaker_family:
       rhel-9-3: RedHatEnterpriseLinux9
@@ -95,6 +97,7 @@
       fedora-37: Fedora37
       fedora-38: Fedora38
       fedora-39: Fedora39
+      fedora-40: Fedora40
       fedora-rawhide: Fedorarawhide
     beaker_compose:
       # avoid rhel-9.3.0-updates-2023xxxx.xx
@@ -104,6 +107,7 @@
       fedora-37: Fedora-37
       fedora-38: Fedora-38
       fedora-39: Fedora-39
+      fedora-40: Fedora-40
       fedora-rawhide: Fedora-Rawhide
 
   tasks:
@@ -170,7 +174,7 @@
           ignore_errors: yes
           when: "'rhel' in os"
 
-        - name: Makre sure VM is running attempt 1
+        - name: Make sure VM is running attempt 1
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -247,7 +251,7 @@
             - "'rhel' in os"
             - instance_status_result_1 is failed
 
-        - name: Makre sure VM is running attempt 2
+        - name: Make sure VM is running attempt 2
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -329,7 +333,7 @@
             - instance_status_result_1 is failed
             - instance_status_result_2 is failed
 
-        - name: Makre sure VM is running attempt 3
+        - name: Make sure VM is running attempt 3
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -401,7 +405,7 @@
           ignore_errors: yes
           when: "'fedora' in os"
 
-        - name: Makre sure VM is running attempt 1
+        - name: Make sure VM is running attempt 1
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -459,7 +463,7 @@
             - "'fedora' in os"
             - instance_status_result_1 is failed
 
-        - name: Makre sure VM is running attempt 2
+        - name: Make sure VM is running attempt 2
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -522,7 +526,7 @@
             - instance_status_result_1 is failed
             - instance_status_result_2 is failed
 
-        - name: Makre sure VM is running attempt 3
+        - name: Make sure VM is running attempt 3
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -594,7 +598,7 @@
           ignore_errors: yes
           when: "'centos' in os"
 
-        - name: Makre sure VM is running attempt 1
+        - name: Make sure VM is running attempt 1
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -652,7 +656,7 @@
             - "'centos' in os"
             - instance_status_result_1 is failed
 
-        - name: Makre sure VM is running attempt 2
+        - name: Make sure VM is running attempt 2
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
@@ -715,7 +719,7 @@
             - instance_status_result_1 is failed
             - instance_status_result_2 is failed
 
-        - name: Makre sure VM is running attempt 3
+        - name: Make sure VM is running attempt 3
           openstack.cloud.server_info:
             cloud: "{{ cloud_profile }}"
             server: "{{ instance_name }}"
