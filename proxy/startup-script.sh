@@ -7,7 +7,11 @@ source /etc/os-release
 # All Fedora GCP images do not support auto resize root disk
 # In Fedora rawhide(39), python3-dnf is not installed in image
 if [[ "$ID" == "fedora" ]]; then
-    growpart /dev/sda 5
+    if [[ "$VERSION_ID" == "40" || "$VERSION_ID" == "41"  ]]; then
+        growpart /dev/sda 4
+    else
+        growpart /dev/sda 5
+    fi
     btrfs filesystem resize 1:+70G /
     dnf install -y python3 python3-dnf
 fi
