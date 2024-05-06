@@ -7,7 +7,7 @@
     ansible_python_interpreter: /usr/bin/python3
     ansible_connection: local
     cloud_profile: "rhos-01"
-    os: "rhel-9-2"
+    os: "rhel-9-5"
     flavor:
       rhos-01:
         large: "ci.standard.large"
@@ -55,9 +55,13 @@
         appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.3.0/compose/AppStream/x86_64/os/"
         crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.3.0/compose/CRB/x86_64/os/"
       rhel-9-4:
-        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.4.0/compose/BaseOS/x86_64/os/"
-        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.4.0/compose/AppStream/x86_64/os/"
-        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.4.0/compose/CRB/x86_64/os/"
+        baseos: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.4.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.4.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/updates/RHEL-9/latest-RHEL-9.4.0/compose/CRB/x86_64/os/"
+      rhel-9-5:
+        baseos: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.5.0/compose/BaseOS/x86_64/os/"
+        appstream: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.5.0/compose/AppStream/x86_64/os/"
+        crb: "http://{{ download_node }}/rhel-9/nightly/RHEL-9/latest-RHEL-9.5.0/compose/CRB/x86_64/os/"
     images:
       centos-stream-8: edge-centos-stream-8
       centos-stream-9: edge-centos-stream-9
@@ -71,6 +75,7 @@
       rhel-9-2: RHEL-9.2.0-x86_64-nightly-latest
       rhel-9-3: RHEL-9.3.0-x86_64-nightly-latest
       rhel-9-4: RHEL-9.4.0-x86_64-nightly-latest
+      rhel-9-5: RHEL-9.5.0-x86_64-nightly-latest
       fedora-36: edge-fedora-36
       fedora-37: edge-fedora-37
       fedora-38: edge-fedora-38
@@ -103,6 +108,7 @@
       # avoid rhel-9.3.0-updates-2023xxxx.xx
       rhel-9-3: rhel-9.3.0-20
       rhel-9-4: rhel-9.4.0-20
+      rhel-9-5: rhel-9.5.0-20
       centos-stream-9: CentOS-Stream-9
       fedora-37: Fedora-37
       fedora-38: Fedora-38
@@ -1038,7 +1044,7 @@
 
     - name: Set runner_version variable
       set_fact:
-        runner_version: "2.314.1"
+        runner_version: "2.316.1"
 
     - debug: var=runner_version
 

@@ -62,7 +62,8 @@ while True:
                 "rhel-9-1",
                 "rhel-9-2",
                 "rhel-9-3",
-                "rhel-9-4"
+                "rhel-9-4",
+                "rhel-9-5"
             ]
             for i in suported_os:
                 if i in labels:
