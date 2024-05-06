@@ -98,6 +98,7 @@
     beaker_family:
       rhel-9-3: RedHatEnterpriseLinux9
       rhel-9-4: RedHatEnterpriseLinux9
+      rhel-9-5: RedHatEnterpriseLinux9
       centos-stream-9: CentOSStream9
       fedora-37: Fedora37
       fedora-38: Fedora38
